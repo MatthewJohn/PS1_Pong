@@ -67,6 +67,7 @@ void initializeOrderingTable(GsOT* orderingTable){
 GsOT orderingTable[2];
 short currentBuffer;
 char fullText[100] = "Current loop: ";
+char scoreText[100] = "Begin Game";
 int loopCounter = 0;
 
 
@@ -116,6 +117,8 @@ short ballFrameCount; // ball movement across multiple frames
 // ----- gamepad INFO  --------------------
 u_long padButtons;
 
+int score;
+
 
 int polyIntersects(object_inf* a, object_inf *b) {
 	if (
@@ -133,9 +136,16 @@ void ballPaddleCollision(object_inf *paddle) {
 	// Get difference in y between ball and paddle
 	int diffY = ball.y - paddle->y;
 	if (diffY != 0)
-        ballV_y = 1 + (diffY / 2);
+        ballV_y = 1 + (diffY / 3);
+	else
+		ballV_y = 1;
 
 	// Point ball in opposite direction
+	ballV_x = 0 - ballV_x;
+}
+
+void endRound(int playerLose) {
+	// Temp check left/right boundaries
 	ballV_x = 0 - ballV_x;
 }
 
@@ -149,16 +159,15 @@ void checkCollisions() {
 	if (ball.y <= BOUNDARY_Y0 || ball.y >= BOUNDARY_Y1)
 		ballV_y = 0 - ballV_y;
 
-	// Temp check left/right boundaries
-	if (ball.x <= BOUNDARY_X0 || ball.x >= BOUNDARY_X1)
-		ballV_x = 0 - ballV_x;
-
+	if (ball.x <= BOUNDARY_X0)
+		endRound(1);
+	else if (ball.x >= BOUNDARY_X1)
+		endRound(0);
 }
 
 void moveBall() {
 	ball.y += ballV_y;
 	ball.x += ballV_x;
-
 }
 
 void setupObject(object_inf *p, int r, int g, int b) {
@@ -214,6 +223,13 @@ void initGame() {
 
 	// Initialise controllers
 	PadInit(0);
+
+    score = 0;
+}
+
+void drawScore() {
+	sprintf(scoreText, "Score: %d", score);
+	FntPrint(scoreText);
 }
 
 void initialize() {
@@ -223,7 +239,7 @@ void initialize() {
 
 void display() {
 	currentBuffer = GsGetActiveBuff();
-	//FntFlush(-1);
+	FntFlush(-1);
 	GsClearOt(0, 0, &orderingTable[currentBuffer]);
 	DrawSync(0);
 	VSync(0);
@@ -243,7 +259,6 @@ int main() {
 		sprintf(fullText, "%d", loopCounter);
 		FntPrint(fullText);
 
-
 		checkPads();
 
 		moveBall();
@@ -253,6 +268,8 @@ int main() {
 		drawObject(&paddle_infos[0]);
 		drawObject(&paddle_infos[1]);
 		drawObject(&ball);
+
+		drawScore();
 
 		display();
 	} while(1);
