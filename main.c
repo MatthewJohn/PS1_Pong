@@ -84,7 +84,7 @@ typedef struct object_inf {
 // Boundaries
 #define BOUNDARY_X0 10
 #define BOUNDARY_Y0 10
-#define BOUNDARY_X1 200
+#define BOUNDARY_X1 240
 #define BOUNDARY_Y1 200
 
 POLY_F4 boundary_lines[4];
@@ -105,14 +105,31 @@ POLY_F4 poly_paddles[PADDLE_COUNT];
 object_inf paddle_infos[2];
 
 // ----- ball INFO  --------------------
+#define FPS 60
 POLY_F4 poly_ball;
 object_inf ball;
+float ballV_scale = 5; // Pixels per second
+short ballV_x = 0;
+short ballV_y = 0;
+short ballFrameCount; // ball movement across multiple frames
 
 // ----- gamepad INFO  --------------------
 u_long padButtons;
 
 void polyIntersects(POLY_F4* a, POLY_F4 *b) {
 
+}
+
+void moveBall() {
+	// Check collision with upper/lower boundaries
+	if (ball.y <= BOUNDARY_Y0 || ball.y >= BOUNDARY_Y1)
+		ballV_y = 0 - ballV_y;
+	ball.y += ballV_y;
+	ball.x += ballV_x;
+
+	// Temp check left/right boundaries
+	if (ball.x <= BOUNDARY_X0 || ball.x >= BOUNDARY_X1)
+		ballV_x = 0 - ballV_x;
 }
 
 void setupObject(object_inf *p, int r, int g, int b) {
@@ -162,13 +179,13 @@ void initGame() {
 	ball.width = 2;
 	ball.height = 2;
 	setupObject(&ball, 0, 0, 0);
+	ballFrameCount = 0;
+	ballV_x = 1;
+	ballV_y = 1;
 
 	// Initialise controllers
 	PadInit(0);
-
 }
-
-
 
 void initialize() {
 	initializeScreen();
@@ -193,9 +210,15 @@ int main() {
 	initGame();
 	do {
 		loopCounter ++;
-		checkPads();
+
 		sprintf(fullText, "%d", loopCounter);
 		FntPrint(fullText);
+
+
+		checkPads();
+
+		moveBall();
+
 
 		drawObject(&paddle_infos[0]);
 		drawObject(&paddle_infos[1]);
