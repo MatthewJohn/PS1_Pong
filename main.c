@@ -198,15 +198,32 @@ void initGame() {
 
 	// Setup boundary lines
 	boundary_lines[0].poly = &poly_boundary_lines[0];
-	boundary_lines[0].y = ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0;
+	boundary_lines[0].y = BOUNDARY_Y0;
 	boundary_lines[0].x = ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0;
 	boundary_lines[0].width = BOUNDARY_X1 - BOUNDARY_X0;
-	boundary_lines[0].height = BOUNDARY_Y1 - BOUNDARY_Y0;
+	boundary_lines[0].height = 2;
 	setupObject(&boundary_lines[0], 0, 0, 0);
 
 	boundary_lines[1].poly = &poly_boundary_lines[1];
+	boundary_lines[1].y = ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0;
+	boundary_lines[1].x = BOUNDARY_X1;
+	boundary_lines[1].width = 2;
+	boundary_lines[1].height = BOUNDARY_Y1 - BOUNDARY_Y0;
+	setupObject(&boundary_lines[1], 0, 0, 0);
+
 	boundary_lines[2].poly = &poly_boundary_lines[2];
+	boundary_lines[2].y = BOUNDARY_Y1;
+	boundary_lines[2].x = ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0;
+	boundary_lines[2].width = BOUNDARY_X1 - BOUNDARY_X0;
+	boundary_lines[2].height = 2;
+	setupObject(&boundary_lines[2], 0, 0, 0);
+
 	boundary_lines[3].poly = &poly_boundary_lines[3];
+	boundary_lines[3].y = ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0;
+	boundary_lines[3].x = BOUNDARY_X0;
+	boundary_lines[3].width = 2;
+	boundary_lines[3].height = BOUNDARY_Y1 - BOUNDARY_Y0;
+	setupObject(&boundary_lines[3], 0, 0, 0);
 
 	// Setup paddle structs
 	paddle_infos[0].poly = &poly_paddles[0];
@@ -279,6 +296,9 @@ int main() {
 		checkCollisions();
 
 		drawObject(&boundary_lines[0]);
+		drawObject(&boundary_lines[1]);
+		drawObject(&boundary_lines[2]);
+		drawObject(&boundary_lines[3]);
 
 		drawObject(&paddle_infos[0]);
 		drawObject(&paddle_infos[1]);
