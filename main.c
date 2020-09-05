@@ -85,7 +85,7 @@ typedef struct object_inf {
 // Boundaries
 #define BOUNDARY_X0 10
 #define BOUNDARY_Y0 10
-#define BOUNDARY_X1 240
+#define BOUNDARY_X1 280
 #define BOUNDARY_Y1 200
 
 POLY_F4 poly_boundary_lines[4];
@@ -181,8 +181,8 @@ void drawObject(object_inf *p) {
     setXY4(p->poly,
         p->x - (p->width / 2), p->y + (p->height / 2),
         p->x + (p->width / 2), p->y + (p->height / 2),
-        p->x + (p->width / 2), p->y - (p->height / 2),
-        p->x - (p->width / 2), p->y - (p->height / 2)
+        p->x - (p->width / 2), p->y - (p->height / 2),
+        p->x + (p->width / 2), p->y - (p->height / 2)
     );
     DrawPrim(p->poly);
 }
@@ -198,10 +198,10 @@ void initGame() {
 
 	// Setup boundary lines
 	boundary_lines[0].poly = &poly_boundary_lines[0];
-	boundary_lines[0].y = BOUNDARY_Y0;
+	boundary_lines[0].y = ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0;
 	boundary_lines[0].x = ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0;
 	boundary_lines[0].width = BOUNDARY_X1 - BOUNDARY_X0;
-	boundary_lines[0].height = 2;
+	boundary_lines[0].height = BOUNDARY_Y1 - BOUNDARY_Y0;
 	setupObject(&boundary_lines[0], 0, 0, 0);
 
 	boundary_lines[1].poly = &poly_boundary_lines[1];
