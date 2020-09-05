@@ -116,20 +116,44 @@ short ballFrameCount; // ball movement across multiple frames
 // ----- gamepad INFO  --------------------
 u_long padButtons;
 
-void polyIntersects(POLY_F4* a, POLY_F4 *b) {
 
+int polyIntersects(object_inf* a, object_inf *b) {
+	if (
+			((a->x + (a->width / 2)) >= (b->x - (b->width / 2))) &&
+			((a->x - (a->width / 2)) <= (b->x + (b->width / 2))) &&
+			((a->y + (a->height / 2)) >= (b->y - (b->height / 2))) &&
+			((a->y - (a->height / 2)) <= (b->y + (b->height / 2)))
+		)
+		return 1;
+	else
+		return 0;
 }
 
-void moveBall() {
+void ballPaddleCollision(object_inf *paddle) {
+	// Point ball in opposite direction
+	ballV_x = 0 - ballV_x;
+}
+
+void checkCollisions() {
+	if (polyIntersects(&ball, &paddle_infos[0]))
+		ballPaddleCollision(&paddle_infos[0]);
+	if (polyIntersects(&ball, &paddle_infos[1]))
+		ballPaddleCollision(&paddle_infos[1]);
+
 	// Check collision with upper/lower boundaries
 	if (ball.y <= BOUNDARY_Y0 || ball.y >= BOUNDARY_Y1)
 		ballV_y = 0 - ballV_y;
-	ball.y += ballV_y;
-	ball.x += ballV_x;
 
 	// Temp check left/right boundaries
 	if (ball.x <= BOUNDARY_X0 || ball.x >= BOUNDARY_X1)
 		ballV_x = 0 - ballV_x;
+
+}
+
+void moveBall() {
+	ball.y += ballV_y;
+	ball.x += ballV_x;
+
 }
 
 void setupObject(object_inf *p, int r, int g, int b) {
@@ -219,6 +243,7 @@ int main() {
 
 		moveBall();
 
+		checkCollisions();
 
 		drawObject(&paddle_infos[0]);
 		drawObject(&paddle_infos[1]);
