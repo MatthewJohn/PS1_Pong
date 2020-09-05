@@ -109,8 +109,8 @@ object_inf paddle_infos[2];
 POLY_F4 poly_ball;
 object_inf ball;
 float ballV_scale = 5; // Pixels per second
-short ballV_x = 0;
-short ballV_y = 0;
+short ballV_x;
+short ballV_y;
 short ballFrameCount; // ball movement across multiple frames
 
 // ----- gamepad INFO  --------------------
@@ -130,6 +130,11 @@ int polyIntersects(object_inf* a, object_inf *b) {
 }
 
 void ballPaddleCollision(object_inf *paddle) {
+	// Get difference in y between ball and paddle
+	int diffY = ball.y - paddle->y;
+	if (diffY != 0)
+        ballV_y = 1 + (diffY / 2);
+
 	// Point ball in opposite direction
 	ballV_x = 0 - ballV_x;
 }
@@ -204,7 +209,7 @@ void initGame() {
 	ball.height = 2;
 	setupObject(&ball, 0, 0, 0);
 	ballFrameCount = 0;
-	ballV_x = 1;
+	ballV_x = 2;
 	ballV_y = 1;
 
 	// Initialise controllers
