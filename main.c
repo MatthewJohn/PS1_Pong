@@ -76,8 +76,18 @@ typedef struct object_inf {
 	POLY_F4 *poly;
 	int x;
 	int y;
+	int width;
+	int height;
 } object_inf;
 
+
+// Boundaries
+#define BOUNDARY_X0 10
+#define BOUNDARY_Y0 10
+#define BOUNDARY_X1 200
+#define BOUNDARY_Y1 200
+
+POLY_F4 boundary_lines[4];
 
 // ----- PADDLE INFO  --------------------
 #define PADDLE_COUNT 2
@@ -92,38 +102,40 @@ typedef struct object_inf {
 #define PADDLE_INITIAL_Y 120
 
 POLY_F4 poly_paddles[PADDLE_COUNT];
-paddle_positions[PADDLE_COUNT];
 object_inf paddle_infos[2];
 
-
-POLY_F4 poly_ball[PADDLE_COUNT];
+// ----- ball INFO  --------------------
+POLY_F4 poly_ball;
 object_inf ball;
 
 // ----- gamepad INFO  --------------------
 u_long padButtons;
 
+void polyIntersects(POLY_F4* a, POLY_F4 *b) {
 
-void drawBar(object_inf *p) {
-    setXY4(p->poly,
-        p->x - (PADDLE_WIDTH / 2), p->y + (PADDLE_HEIGHT / 2),
-        p->x + (PADDLE_WIDTH / 2), p->y + (PADDLE_HEIGHT / 2),
-        p->x + (PADDLE_WIDTH / 2), p->y - (PADDLE_HEIGHT / 2),
-        p->x - (PADDLE_WIDTH / 2), p->y - (PADDLE_HEIGHT / 2)
-    );
-    DrawPrim(p->poly);
 }
 
-void setupPaddle(object_inf *p, int r, int g, int b) {
+void setupObject(object_inf *p, int r, int g, int b) {
     setPolyF4(p->poly);
     setSemiTrans(p->poly, 1);
     setRGB0(p->poly, r, g, b);
 }
 
+void drawObject(object_inf *p) {
+    setXY4(p->poly,
+        p->x - (p->width / 2), p->y + (p->height / 2),
+        p->x + (p->width / 2), p->y + (p->height / 2),
+        p->x + (p->width / 2), p->y - (p->height / 2),
+        p->x - (p->width / 2), p->y - (p->height / 2)
+    );
+    DrawPrim(p->poly);
+}
+
 void checkPads() {
 	padButtons = PadRead(1);
 
-	if(padButtons & PADLup) paddle_infos[0].y --;
-	if(padButtons & PADLdown) paddle_infos[0].y ++;
+	if(padButtons & PADLup) paddle_infos[0].y -= 2;
+	if(padButtons & PADLdown) paddle_infos[0].y += 2;
 }
 
 void initGame() {
@@ -132,15 +144,24 @@ void initGame() {
 	paddle_infos[0].poly = &poly_paddles[0];
 	paddle_infos[0].x = 20;
 	paddle_infos[0].y = PADDLE_INITIAL_Y;
-	setupPaddle(&paddle_infos[0], PADDLE_L_R, PADDLE_L_G, PADDLE_L_B);
+	paddle_infos[0].height = PADDLE_HEIGHT;
+	paddle_infos[0].width = PADDLE_WIDTH;
+	setupObject(&paddle_infos[0], PADDLE_L_R, PADDLE_L_G, PADDLE_L_B);
+
 	paddle_infos[1].poly = &poly_paddles[1];
 	paddle_infos[1].x = 240;
 	paddle_infos[1].y = PADDLE_INITIAL_Y;
-	setupPaddle(&paddle_infos[1], PADDLE_R_R, PADDLE_R_G, PADDLE_R_B);
+	paddle_infos[1].height = PADDLE_HEIGHT;
+	paddle_infos[1].width = PADDLE_WIDTH;
+	setupObject(&paddle_infos[1], PADDLE_R_R, PADDLE_R_G, PADDLE_R_B);
 
 	// Initialise ball
-	ball.poly = poly_ball;
-	ball.x =
+	ball.poly = &poly_ball;
+	ball.x = (BOUNDARY_X1 - BOUNDARY_X0) / 2;
+	ball.y = (BOUNDARY_Y1 - BOUNDARY_Y0) / 2;
+	ball.width = 2;
+	ball.height = 2;
+	setupObject(&ball, 0, 0, 0);
 
 	// Initialise controllers
 	PadInit(0);
@@ -156,7 +177,7 @@ void initialize() {
 
 void display() {
 	currentBuffer = GsGetActiveBuff();
-	FntFlush(-1);
+	//FntFlush(-1);
 	GsClearOt(0, 0, &orderingTable[currentBuffer]);
 	DrawSync(0);
 	VSync(0);
@@ -175,8 +196,11 @@ int main() {
 		checkPads();
 		sprintf(fullText, "%d", loopCounter);
 		FntPrint(fullText);
-		drawBar(&paddle_infos[0]);
-		drawBar(&paddle_infos[1]);
+
+		drawObject(&paddle_infos[0]);
+		drawObject(&paddle_infos[1]);
+		drawObject(&ball);
+
 		display();
 	} while(1);
 	return 0;
