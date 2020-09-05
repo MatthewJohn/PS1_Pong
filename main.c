@@ -88,7 +88,8 @@ typedef struct object_inf {
 #define BOUNDARY_X1 240
 #define BOUNDARY_Y1 200
 
-POLY_F4 boundary_lines[4];
+POLY_F4 poly_boundary_lines[4];
+object_inf boundary_lines[4];
 
 // ----- PADDLE INFO  --------------------
 #define PADDLE_COUNT 2
@@ -103,7 +104,7 @@ POLY_F4 boundary_lines[4];
 #define PADDLE_INITIAL_Y 120
 
 POLY_F4 poly_paddles[PADDLE_COUNT];
-object_inf paddle_infos[2];
+object_inf paddle_infos[PADDLE_COUNT];
 
 // ----- ball INFO  --------------------
 #define FPS 60
@@ -195,6 +196,18 @@ void checkPads() {
 
 void initGame() {
 
+	// Setup boundary lines
+	boundary_lines[0].poly = &poly_boundary_lines[0];
+	boundary_lines[0].y = BOUNDARY_Y0;
+	boundary_lines[0].x = ((BOUNDARY_X0 - BOUNDARY_X0) / 2) + BOUNDARY_X0;
+	boundary_lines[0].width = BOUNDARY_X1 - BOUNDARY_X0;
+	boundary_lines[0].height = 2;
+	setupObject(&boundary_lines[0], 0, 0, 0);
+
+	boundary_lines[1].poly = &poly_boundary_lines[1];
+	boundary_lines[2].poly = &poly_boundary_lines[2];
+	boundary_lines[3].poly = &poly_boundary_lines[3];
+
 	// Setup paddle structs
 	paddle_infos[0].poly = &poly_paddles[0];
 	paddle_infos[0].x = 20;
@@ -268,6 +281,8 @@ int main() {
 		drawObject(&paddle_infos[0]);
 		drawObject(&paddle_infos[1]);
 		drawObject(&ball);
+
+		drawObject(&boundary_lines[0]);
 
 		drawScore();
 
