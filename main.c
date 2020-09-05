@@ -199,7 +199,7 @@ void initGame() {
 	// Setup boundary lines
 	boundary_lines[0].poly = &poly_boundary_lines[0];
 	boundary_lines[0].y = BOUNDARY_Y0;
-	boundary_lines[0].x = ((BOUNDARY_X0 - BOUNDARY_X0) / 2) + BOUNDARY_X0;
+	boundary_lines[0].x = ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0;
 	boundary_lines[0].width = BOUNDARY_X1 - BOUNDARY_X0;
 	boundary_lines[0].height = 2;
 	setupObject(&boundary_lines[0], 0, 0, 0);
@@ -278,11 +278,11 @@ int main() {
 
 		checkCollisions();
 
+		drawObject(&boundary_lines[0]);
+
 		drawObject(&paddle_infos[0]);
 		drawObject(&paddle_infos[1]);
 		drawObject(&ball);
-
-		drawObject(&boundary_lines[0]);
 
 		drawScore();
 
