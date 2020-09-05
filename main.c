@@ -55,7 +55,7 @@ void initializeScreen() {
 
 void initializeDebugFont() {
 	FntLoad(960, 256);
-	SetDumpFnt(FntOpen(5, 20, 320, 240, 0, 512)); //Sets the dumped font for use with FntPrint();
+	SetDumpFnt(FntOpen(5, 18, 80, 10, 1, 512)); //Sets the dumped font for use with FntPrint();
 }
 
 void initializeOrderingTable(GsOT* orderingTable){
@@ -92,6 +92,7 @@ POLY_F4 poly_boundary_lines[4];
 object_inf boundary_lines[4];
 
 // ----- PADDLE INFO  --------------------
+#define PADDLE_SPEED 3
 #define PADDLE_COUNT 2
 #define PADDLE_HEIGHT 30
 #define PADDLE_WIDTH 8
@@ -148,6 +149,10 @@ void ballPaddleCollision(object_inf *paddle) {
 void endRound(int playerLose) {
 	// Temp check left/right boundaries
 	ballV_x = 0 - ballV_x;
+	if (playerLose)
+		score --;
+	else
+		score ++;
 }
 
 void checkCollisions() {
@@ -190,8 +195,8 @@ void drawObject(object_inf *p) {
 void checkPads() {
 	padButtons = PadRead(1);
 
-	if(padButtons & PADLup) paddle_infos[0].y -= 2;
-	if(padButtons & PADLdown) paddle_infos[0].y += 2;
+	if(padButtons & PADLup) paddle_infos[0].y -= PADDLE_SPEED;
+	if(padButtons & PADLdown) paddle_infos[0].y += PADDLE_SPEED;
 }
 
 void initGame() {
@@ -286,8 +291,8 @@ int main() {
 	do {
 		loopCounter ++;
 
-		sprintf(fullText, "%d", loopCounter);
-		FntPrint(fullText);
+		//sprintf(fullText, "%d", loopCounter);
+		//FntPrint(fullText);
 
 		checkPads();
 
