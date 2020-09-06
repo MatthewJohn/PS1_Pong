@@ -9,7 +9,6 @@
 #include <libgte.h>
 #include <libgpu.h>
 #include <libgs.h>
-
 #include <libetc.h>
 #include <libpad.h>
 
@@ -22,52 +21,10 @@
 
 int SCREEN_WIDTH, SCREEN_HEIGHT;
 
-//Set the screen mode to either SCREEN_MODE_PAL or SCREEN_MODE_NTSC
-void setScreenMode(int mode) {
-
-}
-
-//Initialize screen,
-void initializeScreen() {
-	if (*(char *)0xbfc7ff52=='E') { // SCEE string address
-    	// PAL MODE
-    	SCREEN_WIDTH = 320;
-    	SCREEN_HEIGHT = 256;
-    	if (DEBUG) printf("Setting the PlayStation Video Mode to (PAL %dx%d)\n",SCREEN_WIDTH,SCREEN_HEIGHT,")");
-    	SetVideoMode(1);
-    	if (DEBUG) printf("Video Mode is (%d)\n",GetVideoMode());
-   	} else {
-     	// NTSC MODE
-     	SCREEN_WIDTH = 320;
-     	SCREEN_HEIGHT = 240;
-     	if (DEBUG) printf("Setting the PlayStation Video Mode to (NTSC %dx%d)\n",SCREEN_WIDTH,SCREEN_HEIGHT,")");
-     	SetVideoMode(0);
-     	if (DEBUG) printf("Video Mode is (%d)\n",GetVideoMode());
-   }
-	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0);
-	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);
-
-
-
-	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0); //Set up interlation..
-	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);	//..and double buffering.
-}
-
-void initializeDebugFont() {
-	FntLoad(960, 256);
-	SetDumpFnt(FntOpen(20, 230, 300, 10, 1, 512)); //Sets the dumped font for use with FntPrint();
-}
-
-void initializeOrderingTable(GsOT* orderingTable){
-	GsClearOt(0,0,&orderingTable[GsGetActiveBuff()]);
-}
-
-
-
 GsOT orderingTable[2];
 short currentBuffer;
 char scoreText[100] = "Begin Game";
-char debugText[100] = "Begin Game";
+char debugText[100] = "Debug Text";
 
 
 long global_timer = 0;
@@ -404,8 +361,24 @@ void drawScore() {
 }
 
 void initialize() {
-	initializeScreen();
-	initializeDebugFont();
+	if (*(char *)0xbfc7ff52=='E') { // SCEE string address
+    	// PAL
+    	SCREEN_WIDTH = 320;
+    	SCREEN_HEIGHT = 256;
+    	SetVideoMode(1);
+   	} else {
+     	// NTSC
+     	SCREEN_WIDTH = 320;
+     	SCREEN_HEIGHT = 240;
+     	SetVideoMode(0);
+   }
+	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0);
+	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);
+
+	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0);
+	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);
+	FntLoad(960, 256);
+	SetDumpFnt(FntOpen(20, 230, 300, 10, 1, 512));
 }
 
 void display() {
