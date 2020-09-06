@@ -12,8 +12,18 @@
 #include <libetc.h>
 #include <libpad.h>
 
-#define OT_LENGTH 1
+#include "numbers_font_tim.h"
+
+#define OT_LENGTH 10
 #define PACKETMAX 18
+#define OT_ENTRIES  1<<OT_LENGTH
+
+#define PACKETMAX   2048
+
+
+GsOT        myOT[2];                        // OT handlers
+
+
 #define __ramsize   0x00200000
 #define __stacksize 0x00004000
 
@@ -22,13 +32,19 @@
 int SCREEN_WIDTH, SCREEN_HEIGHT;
 
 GsOT orderingTable[2];
+GsOT_TAG    orderingTableTag[2][OT_ENTRIES];        // OT tables
 short currentBuffer;
+PACKET packetArea[2][PACKETMAX*24];
+
 char scoreText[100] = "Begin Game";
 char debugText[100] = "Debug Text";
 
 
 long global_timer = 0;
 short seed_set = 0;
+
+
+GsIMAGE numbers_font;
 
 
 // ----- Poly struct --------------------
@@ -76,7 +92,7 @@ int ballV_x;
 int ballV_y;
 
 #define BALLV_Y_MAX 4
-#define BALL_REFLECTION_FACTOR 3
+#define BALL_REFLECTION_FACTOR 4
 
 int ballFrameCount; // ball movement across multiple frames
 
@@ -103,7 +119,16 @@ u_long padButtons;
 POLY_F4 poly_net_line;
 object_inf net_line;
 
-int score;
+// -- SCORE -----------------------------
+int scores[PADDLE_COUNT];
+POLY_FT4 poly_score_numbers[PADDLE_COUNT];
+#define SCORE_NUMBER_HEIGHT 20
+#define SCORE_NUMBER_WIDTH 20
+#define SCORE_NUMBER_MARGIN_LEFT 50
+#define SCORE_NUMBER_MARGIN_TOP 30
+
+
+
 
 
 int polyIntersects(object_inf* a, object_inf *b) {
@@ -145,9 +170,9 @@ void endRound(int playerLose) {
 	// Temp check left/right boundaries
 	ballV_x = 0 - ballV_x;
 	if (playerLose)
-		score --;
+		scores[1] ++;
 	else
-		score ++;
+		scores[0] ++;
 }
 
 void checkCollisions() {
@@ -282,6 +307,58 @@ void moveComputer() {
 	}
 }
 
+void setupScoreNumber(POLY_FT4 *p) {
+	int x, y;
+	int basepx, basepy;
+
+    // Set texture size and coordinates
+//    switch (numbers_font.pmode & 3) {
+//        case 0: // 4-bit
+//            sprite->w = numbers_font.pw << 2;
+//            sprite->u = (numbers_font.px & 0x3f) * 4;
+//            break;
+//        case 1: // 8-bit
+//            sprite->w = numbers_font.pw << 1;
+//            sprite->u = (numbers_font.px & 0x3f) * 2;
+//            break;
+//        default: // 16-bit
+//            sprite->w = numbers_font.pw;
+//            sprite->u = numbers_font.px & 0x3f;
+//    };
+
+    //p->h = numbers_font.ph;
+    //p->v = numbers_font.py & 0xff;
+
+    // Set texture page and color depth attribute
+    //p->tpage       = GetTPage((numbers_font.pmode & 3), 0, numbers_font.px, numbers_font.py);
+	p->tpage       = GetTPage(0, 0, numbers_font.px, numbers_font.py);
+	sprintf(debugText, GetClut(numbers_font.cx, numbers_font.cy));
+    //p->attribute   = (numbers_font.pmode & 3) << 24;
+
+    // CLUT coords
+    p->clut          = GetClut(numbers_font.cx, numbers_font.cy);
+    setPolyFT4(p);
+    setXY4(p,
+    	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
+    	SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
+    	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP,
+        SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP
+    );
+    basepx = numbers_font.px;
+    basepy = numbers_font.py;
+    //basepx = 320;
+    //basepx = 0;
+    //basepy = 0;
+    setUV4(p,
+    		basepx, basepy,
+    		basepx + 10, basepy,
+    		basepx, basepy + 10,
+    		basepx + 10, basepy + 10);
+    //setRGB0(p, 64, 64, 64);
+    //p->cx          = numbers_font.cx;
+    //p->cy          = numbers_font.cy;
+}
+
 void initGame() {
 	global_timer = 0;
 
@@ -349,17 +426,47 @@ void initGame() {
 	ballV_y = 1;
 
 	currentOpponentState = MOVING_TO_BALL;
-	opponentTargetPos = calculateTargetMovement();
+	//opponentTargetPos = calculateTargetMovement();
 
 	// Initialise controllers
 	PadInit(0);
 
-    score = 0;
+    scores[0] = 0;
+    scores[1] = 0;
+
+    setupScoreNumber(&poly_score_numbers[0]);
 }
 
 void drawScore() {
-	sprintf(scoreText, "Score: %f", score);
-	FntPrint(scoreText);
+	sprintf(scoreText, "Score: %f", scores[0]);
+	//FntPrint(scoreText);
+}
+
+void LoadTexture(GsIMAGE *image, u_long *addr) {
+    RECT rect;
+
+    // Get TIM information
+    GsGetTimInfo((addr+1), image);
+
+    // Load the texture image
+    rect.x = image->px; rect.y = image->py;
+    rect.w = image->pw; rect.h = image->ph;
+    if (LoadImage2(&rect, image->pixel)) {
+    	sprintf(debugText, "failure load1");
+    	FntPrint(debugText);
+    }
+    DrawSync(0);
+
+    // Load the CLUT (if there is one)
+    if ((image->pmode>>3) & 0x01) {
+        rect.x = image->cx; rect.y = image->cy;
+        rect.w = image->cw; rect.h = image->ch;
+        if (LoadImage2(&rect, image->clut)) {
+           sprintf(debugText, "failure load2");
+           FntPrint(debugText);
+        }
+        DrawSync(0);
+    }
 }
 
 void initialize() {
@@ -379,8 +486,16 @@ void initialize() {
 
 	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0);
 	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);
+
+	orderingTable[0].length = OT_LENGTH;
+	orderingTable[1].length = OT_LENGTH;
+    orderingTable[0].org    = orderingTableTag[0];
+    orderingTable[1].org    = orderingTableTag[1];
+
 	FntLoad(960, 256);
 	SetDumpFnt(FntOpen(0, 230, 300, 10, 1, 512));
+
+	LoadTexture(&numbers_font, (u_long*)numbers_font_tim);
 }
 
 void display() {
@@ -389,12 +504,18 @@ void display() {
 		FntPrint(debugText);
 
 	currentBuffer = GsGetActiveBuff();
+
+	GsSetWorkBase((PACKET*)packetArea[currentBuffer]);
 	FntFlush(-1);
 	GsClearOt(0, 0, &orderingTable[currentBuffer]);
 	DrawSync(0);
 	VSync(0);
 	GsSwapDispBuff();
 	GsSortClear(255, 255, 255, &orderingTable[currentBuffer]);
+
+	GsSortPoly(&poly_score_numbers[0], &orderingTable[currentBuffer], 0);
+
+
 	GsDrawOt(&orderingTable[currentBuffer]);
 }
 
@@ -424,6 +545,7 @@ int main() {
 		drawObject(&ball);
 
 		drawScore();
+		//DrawPrim(&poly_score_numbers[0]);
 
 		display();
 	} while(1);
