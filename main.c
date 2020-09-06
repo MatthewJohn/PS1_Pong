@@ -256,10 +256,11 @@ int calculateTargetPos() {
 
 	delta_y = delta_y % ((BOUNDARY_Y1 - BOUNDARY_Y0) * 2);
 
-	if (delta_y < (BOUNDARY_Y1 - BOUNDARY_Y0))
+	if (delta_y < (BOUNDARY_Y1 - BOUNDARY_Y0)) {
 		return (BOUNDARY_Y0 + (BOUNDARY_Y1 - BOUNDARY_Y0) - delta_y);
-	else
-		return (BOUNDARY_Y0 + (BOUNDARY_Y1 - BOUNDARY_Y0) + (delta_y - (BOUNDARY_Y1 - BOUNDARY_Y0)));
+	} else {
+		return (BOUNDARY_Y0 + (delta_y - (BOUNDARY_Y1 - BOUNDARY_Y0)));
+	}
 
 	//return (delta_y + BOUNDARY_Y0);
 }
