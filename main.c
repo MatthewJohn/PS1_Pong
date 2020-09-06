@@ -133,15 +133,12 @@ int score;
 
 
 int polyIntersects(object_inf* a, object_inf *b) {
-	if (
+	return (
 			((a->x + (a->width / 2)) >= (b->x - (b->width / 2))) &&
 			((a->x - (a->width / 2)) <= (b->x + (b->width / 2))) &&
 			((a->y + (a->height / 2)) >= (b->y - (b->height / 2))) &&
 			((a->y - (a->height / 2)) <= (b->y + (b->height / 2)))
-		)
-		return 1;
-	else
-		return 0;
+		);
 }
 
 void ballPaddleCollision(object_inf *paddle) {
@@ -221,6 +218,14 @@ void checkPads() {
 
 	if(padButtons & PADLup) paddle_infos[0].y -= PADDLE_SPEED;
 	if(padButtons & PADLdown) paddle_infos[0].y += PADDLE_SPEED;
+}
+
+void moveComputer() {
+	if (ballV_x > 0)
+		if (paddle_infos[1].y < ball.y)
+			paddle_infos[1].y += PADDLE_SPEED;
+		else if (paddle_infos[1].y > ball.y)
+			paddle_infos[1].y -= PADDLE_SPEED;
 }
 
 void initGame() {
@@ -328,6 +333,7 @@ int main() {
 		loopCounter ++;
 
 		checkPads();
+		moveComputer();
 
 		moveBall();
 
