@@ -55,7 +55,7 @@ void initializeScreen() {
 
 void initializeDebugFont() {
 	FntLoad(960, 256);
-	SetDumpFnt(FntOpen(20, 230, 200, 10, 1, 512)); //Sets the dumped font for use with FntPrint();
+	SetDumpFnt(FntOpen(20, 230, 300, 10, 1, 512)); //Sets the dumped font for use with FntPrint();
 }
 
 void initializeOrderingTable(GsOT* orderingTable){
@@ -136,7 +136,7 @@ short opponentTimeToWait;
 short opponentTargetPos;
 #define OPPONENT_MIN_WAIT 30
 #define OPPONENT_MAX_WAIT 80
-#define OPPONENT_MISS_CHANCE 25
+#define OPPONENT_MISS_CHANCE 10
 
 
 // ----- gamepad INFO  --------------------
@@ -250,21 +250,36 @@ int calculateBallHitPos() {
 	int court_height = BOUNDARY_Y1 - BOUNDARY_Y0;
 	short delta_x = (BOUNDARY_X1 - PADDLE_BOUNDARY_POS_MARGIN) - ball.x;
 	short delta_y = (delta_x / ballV_x) * ballV_y;
+    int wasNegative = 0;
+	char typeT;
+
 	// Convert delta_y to distance from top of boundary Y
 	delta_y += (ball.y - BOUNDARY_Y0);
 
-	delta_y += court_height;
+    if (delta_y < 0) {
+    	wasNegative = 1;
+    	delta_y = 0 - delta_y;
 
+    }
+
+	delta_y += court_height;
 
 	delta_y = delta_y % (court_height * 2);
 
-	if (delta_y < court_height) {
-		sprintf(debugText, "BBBB: %d", (BOUNDARY_Y0 + court_height - delta_y));
-		return ((BOUNDARY_Y0 + court_height) - delta_y);
+	if (delta_y > court_height) {
+		delta_y -= court_height;
+		typeT = "a";
 	} else {
-		sprintf(debugText, "BBBB: %d", (BOUNDARY_Y0 + (delta_y - court_height)));
-		return (BOUNDARY_Y0 + (delta_y - court_height));
+		delta_y = court_height - delta_y;
+		typeT = "b";
 	}
+	sprintf(debugText, "%c:%d dx: %d, dy: %d, Pred: %d",
+			typeT,
+			wasNegative,
+			(BOUNDARY_X1 - PADDLE_BOUNDARY_POS_MARGIN) - ball.x,
+			(delta_x / ballV_x) * ballV_y,
+			delta_y);
+	return BOUNDARY_Y0 + delta_y;
 }
 
 int calculateTargetMovement() {
