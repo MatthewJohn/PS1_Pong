@@ -70,7 +70,8 @@ char scoreText[100] = "Begin Game";
 char debugText[100] = "Begin Game";
 
 
-int loopCounter = 0;
+long global_timer = 0;
+short seed_set = 0;
 
 
 // ----- Poly struct --------------------
@@ -122,6 +123,21 @@ int ballV_y;
 
 int ballFrameCount; // ball movement across multiple frames
 
+// --------- Opponent info -------------------
+enum OpponentState{
+	NOTHING,
+	WAITING,
+	MOVING_TO_BALL,
+	REACHED_POS
+};
+enum OpponentState currentOpponentState;
+short opponentTimeWaited;
+short opponentTimeToWait;
+short opponentTargetPos;
+#define OPPONENT_MIN_WAIT 30
+#define OPPONENT_MAX_WAIT 80
+
+
 // ----- gamepad INFO  --------------------
 u_long padButtons;
 
@@ -164,7 +180,7 @@ void ballPaddleCollision(object_inf *paddle) {
 	// Point ball in opposite direction
 	ballV_x = 0 - ballV_x;
 
-	sprintf(debugText, "V: %d  F: %d", ballV_y, Vy_factor);
+	//sprintf(debugText, "V: %d  F: %d", ballV_y, Vy_factor);
 }
 
 void endRound(int playerLose) {
@@ -213,22 +229,75 @@ void drawObject(object_inf *p) {
     DrawPrim(p->poly);
 }
 
+void setRandomSeed() {
+	if (seed_set == 0) {
+		seed_set = 1;
+        srand((unsigned int)global_timer ^ GetRCnt(2));
+	}
+}
+
 void checkPads() {
 	padButtons = PadRead(1);
-
+	if (padButtons) {
+		setRandomSeed();
+	}
 	if(padButtons & PADLup) paddle_infos[0].y -= PADDLE_SPEED;
 	if(padButtons & PADLdown) paddle_infos[0].y += PADDLE_SPEED;
 }
 
+int calculateTargetPos() {
+	short delta_x = (BOUNDARY_X1 - PADDLE_BOUNDARY_POS_MARGIN) - ball.x;
+	short delta_y = (delta_x / ballV_x) * ballV_y;
+	// Convert delta_y to distance from top of boundary Y
+	delta_y += (ball.y - BOUNDARY_Y0);
+
+	delta_y += (BOUNDARY_Y1 - BOUNDARY_Y0);
+
+
+	delta_y = delta_y % ((BOUNDARY_Y1 - BOUNDARY_Y0) * 2);
+
+	if (delta_y < (BOUNDARY_Y1 - BOUNDARY_Y0))
+		return (BOUNDARY_Y0 + (BOUNDARY_Y1 - BOUNDARY_Y0) - delta_y);
+	else
+		return (BOUNDARY_Y0 + (BOUNDARY_Y1 - BOUNDARY_Y0) + (delta_y - (BOUNDARY_Y1 - BOUNDARY_Y0)));
+
+	//return (delta_y + BOUNDARY_Y0);
+}
+
 void moveComputer() {
-	if (ballV_x > 0)
-		if (paddle_infos[1].y < ball.y)
-			paddle_infos[1].y += PADDLE_SPEED;
-		else if (paddle_infos[1].y > ball.y)
-			paddle_infos[1].y -= PADDLE_SPEED;
+	if (ballV_x > 0) {
+		//sprintf(debugText, "TO WAIT: %d  WAITED: %d", opponentTimeToWait, opponentTimeWaited);
+
+		switch (currentOpponentState) {
+			case NOTHING:
+				opponentTimeToWait = rand() % (OPPONENT_MAX_WAIT - OPPONENT_MIN_WAIT) + OPPONENT_MIN_WAIT;
+				opponentTimeWaited = 0;
+				currentOpponentState = WAITING;
+				break;
+			case WAITING:
+				opponentTimeWaited ++;
+				if (opponentTimeWaited >= opponentTimeToWait) {
+					currentOpponentState = MOVING_TO_BALL;
+					opponentTargetPos = calculateTargetPos();
+				}
+				break;
+			case MOVING_TO_BALL:
+                if ((paddle_infos[1].y + (PADDLE_SPEED - 1)) < opponentTargetPos)
+			        paddle_infos[1].y += PADDLE_SPEED;
+		        else if ((paddle_infos[1].y - (PADDLE_SPEED - 1)) > opponentTargetPos)
+			        paddle_infos[1].y -= PADDLE_SPEED;
+                break;
+			case REACHED_POS:
+				break;
+		}
+	} else {
+		currentOpponentState = NOTHING;
+	}
 }
 
 void initGame() {
+	global_timer = 0;
+	currentOpponentState = NOTHING;
 
 	// Setup boundary lines
 	boundary_lines[0].poly = &poly_boundary_lines[0];
@@ -330,7 +399,7 @@ int main() {
 	initialize();
 	initGame();
 	do {
-		loopCounter ++;
+		global_timer ++;
 
 		checkPads();
 		moveComputer();
