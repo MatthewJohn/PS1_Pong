@@ -278,14 +278,12 @@ void moveComputer() {
 				break;
 		}
 	} else {
-		currentOpponentState = MOVING_TO_BALL;
+		currentOpponentState = NOTHING;
 	}
 }
 
 void initGame() {
 	global_timer = 0;
-	currentOpponentState = MOVING_TO_BALL;
-	opponentTargetPos = calculateTargetMovement();
 
 	// Setup boundary lines
 	boundary_lines[0].poly = &poly_boundary_lines[0];
@@ -350,6 +348,9 @@ void initGame() {
 	ballV_x = 2;
 	ballV_y = 1;
 
+	currentOpponentState = MOVING_TO_BALL;
+	opponentTargetPos = calculateTargetMovement();
+
 	// Initialise controllers
 	PadInit(0);
 
@@ -372,14 +373,14 @@ void initialize() {
      	SCREEN_WIDTH = 320;
      	SCREEN_HEIGHT = 240;
      	SetVideoMode(0);
-   }
+    }
 	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0);
 	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);
 
 	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0);
 	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);
 	FntLoad(960, 256);
-	SetDumpFnt(FntOpen(20, 230, 300, 10, 1, 512));
+	SetDumpFnt(FntOpen(0, 230, 300, 10, 1, 512));
 }
 
 void display() {
