@@ -103,6 +103,7 @@ object_inf boundary_lines[4];
 #define PADDLE_R_G 200
 #define PADDLE_R_B 200
 #define PADDLE_INITIAL_Y 120
+#define PADDLE_BOUNDARY_POS_MARGIN 20
 
 POLY_F4 poly_paddles[PADDLE_COUNT];
 object_inf paddle_infos[PADDLE_COUNT];
@@ -240,14 +241,14 @@ void initGame() {
 
 	// Setup paddle structs
 	paddle_infos[0].poly = &poly_paddles[0];
-	paddle_infos[0].x = 20;
+	paddle_infos[0].x = BOUNDARY_X0 + PADDLE_BOUNDARY_POS_MARGIN;
 	paddle_infos[0].y = PADDLE_INITIAL_Y;
 	paddle_infos[0].height = PADDLE_HEIGHT;
 	paddle_infos[0].width = PADDLE_WIDTH;
 	setupObject(&paddle_infos[0], PADDLE_L_R, PADDLE_L_G, PADDLE_L_B);
 
 	paddle_infos[1].poly = &poly_paddles[1];
-	paddle_infos[1].x = 240;
+	paddle_infos[1].x = BOUNDARY_X1 - PADDLE_BOUNDARY_POS_MARGIN;
 	paddle_infos[1].y = PADDLE_INITIAL_Y;
 	paddle_infos[1].height = PADDLE_HEIGHT;
 	paddle_infos[1].width = PADDLE_WIDTH;
