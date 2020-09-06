@@ -136,6 +136,7 @@ short opponentTimeToWait;
 short opponentTargetPos;
 #define OPPONENT_MIN_WAIT 30
 #define OPPONENT_MAX_WAIT 80
+#define OPPONENT_MISS_CHANCE 25
 
 
 // ----- gamepad INFO  --------------------
@@ -245,30 +246,43 @@ void checkPads() {
 	if(padButtons & PADLdown) paddle_infos[0].y += PADDLE_SPEED;
 }
 
-int calculateTargetPos() {
+int calculateBallHitPos() {
+	int court_height = BOUNDARY_Y1 - BOUNDARY_Y0;
 	short delta_x = (BOUNDARY_X1 - PADDLE_BOUNDARY_POS_MARGIN) - ball.x;
 	short delta_y = (delta_x / ballV_x) * ballV_y;
 	// Convert delta_y to distance from top of boundary Y
 	delta_y += (ball.y - BOUNDARY_Y0);
 
-	delta_y += (BOUNDARY_Y1 - BOUNDARY_Y0);
+	delta_y += court_height;
 
 
-	delta_y = delta_y % ((BOUNDARY_Y1 - BOUNDARY_Y0) * 2);
+	delta_y = delta_y % (court_height * 2);
 
-	if (delta_y < (BOUNDARY_Y1 - BOUNDARY_Y0)) {
-		return (BOUNDARY_Y0 + (BOUNDARY_Y1 - BOUNDARY_Y0) - delta_y);
+	if (delta_y < court_height) {
+		sprintf(debugText, "BBBB: %d", (BOUNDARY_Y0 + court_height - delta_y));
+		return ((BOUNDARY_Y0 + court_height) - delta_y);
 	} else {
-		return (BOUNDARY_Y0 + (delta_y - (BOUNDARY_Y1 - BOUNDARY_Y0)));
+		sprintf(debugText, "BBBB: %d", (BOUNDARY_Y0 + (delta_y - court_height)));
+		return (BOUNDARY_Y0 + (delta_y - court_height));
 	}
+}
 
-	//return (delta_y + BOUNDARY_Y0);
+int calculateTargetMovement() {
+	int ballEndPos = calculateBallHitPos();
+	int decision = rand() % 100;
+	if (decision < OPPONENT_MISS_CHANCE) {
+		sprintf(debugText, "Goofin it up");
+		if (ballEndPos <= (BOUNDARY_Y1 / 2 + BOUNDARY_Y0))
+			return ballEndPos + PADDLE_HEIGHT;
+		else
+			return ballEndPos - PADDLE_HEIGHT;
+	}
+	return ballEndPos;
 }
 
 void moveComputer() {
 	if (ballV_x > 0) {
 		//sprintf(debugText, "TO WAIT: %d  WAITED: %d", opponentTimeToWait, opponentTimeWaited);
-
 		switch (currentOpponentState) {
 			case NOTHING:
 				opponentTimeToWait = rand() % (OPPONENT_MAX_WAIT - OPPONENT_MIN_WAIT) + OPPONENT_MIN_WAIT;
@@ -279,7 +293,7 @@ void moveComputer() {
 				opponentTimeWaited ++;
 				if (opponentTimeWaited >= opponentTimeToWait) {
 					currentOpponentState = MOVING_TO_BALL;
-					opponentTargetPos = calculateTargetPos();
+					opponentTargetPos = calculateTargetMovement();
 				}
 				break;
 			case MOVING_TO_BALL:
