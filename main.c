@@ -55,7 +55,7 @@ void initializeScreen() {
 
 void initializeDebugFont() {
 	FntLoad(960, 256);
-	SetDumpFnt(FntOpen(5, 18, 80, 10, 1, 512)); //Sets the dumped font for use with FntPrint();
+	SetDumpFnt(FntOpen(20, 230, 200, 10, 1, 512)); //Sets the dumped font for use with FntPrint();
 }
 
 void initializeOrderingTable(GsOT* orderingTable){
@@ -66,8 +66,10 @@ void initializeOrderingTable(GsOT* orderingTable){
 
 GsOT orderingTable[2];
 short currentBuffer;
-char fullText[100] = "Current loop: ";
 char scoreText[100] = "Begin Game";
+char debugText[100] = "Begin Game";
+
+
 int loopCounter = 0;
 
 
@@ -94,8 +96,8 @@ object_inf boundary_lines[4];
 // ----- PADDLE INFO  --------------------
 #define PADDLE_SPEED 3
 #define PADDLE_COUNT 2
-#define PADDLE_HEIGHT 30
-#define PADDLE_WIDTH 8
+#define PADDLE_HEIGHT 40
+#define PADDLE_WIDTH 6
 #define PADDLE_L_R 20
 #define PADDLE_L_G 120
 #define PADDLE_L_B 67
@@ -114,13 +116,13 @@ POLY_F4 poly_ball;
 object_inf ball;
 short ballV_x;
 short ballV_y;
-#define BALLV_Y_MAX 8
+#define BALLV_Y_MAX 6
 short ballFrameCount; // ball movement across multiple frames
 
 // ----- gamepad INFO  --------------------
 u_long padButtons;
 
-int score;
+float score;
 
 
 int polyIntersects(object_inf* a, object_inf *b) {
@@ -137,14 +139,26 @@ int polyIntersects(object_inf* a, object_inf *b) {
 
 void ballPaddleCollision(object_inf *paddle) {
 	// Get difference in y between ball and paddle
-	int diffY = ball.y - paddle->y;
-	if (diffY != 0)
+	// Split paddle into four sections, for different ball YVelocity factors
+	// |  1  -  2
+	// |  0  -  1
+	// | -1  -  0
+	// | -2  - -1
+	short Vy_factor = (ball.y - paddle->y) / 5;
+
+	//if (Vy_factor != 0)
 		// If difference in
-        ballV_y = 1 * (diffY / 4);
-	else if (ballV_y > 0)
-		ballV_y = 1;
-	else
-		ballV_y = -1;
+	if (ballV_y == 0 && Vy_factor != 0)
+		ballV_y = Vy_factor;
+    ballV_y = ballV_y * Vy_factor;
+
+	// Ensure ball in travelling in direction of the paddle side (e.g. top vs bottom)
+    if ((Vy_factor > 0 && ballV_y < 0) || (Vy_factor < 0 && ballV_y > 0))
+    	ballV_y = 0 - ballV_y;
+	//else if (ballV_y > 0)
+	//	ballV_y = 1;
+	//else
+	//	ballV_y = -1;
 
 	// If vertical velocity exceeds max,
 	// set to max
@@ -153,6 +167,8 @@ void ballPaddleCollision(object_inf *paddle) {
 
 	// Point ball in opposite direction
 	ballV_x = 0 - ballV_x;
+
+	sprintf(debugText, "V: %d  F: %d", ballV_y, Vy_factor);
 }
 
 void endRound(int playerLose) {
@@ -272,7 +288,7 @@ void initGame() {
 }
 
 void drawScore() {
-	sprintf(scoreText, "Score: %d", score);
+	sprintf(scoreText, "Score: %f", score);
 	FntPrint(scoreText);
 }
 
@@ -282,6 +298,10 @@ void initialize() {
 }
 
 void display() {
+
+	if (DEBUG)
+		FntPrint(debugText);
+
 	currentBuffer = GsGetActiveBuff();
 	FntFlush(-1);
 	GsClearOt(0, 0, &orderingTable[currentBuffer]);
@@ -299,9 +319,6 @@ int main() {
 	initGame();
 	do {
 		loopCounter ++;
-
-		//sprintf(fullText, "%d", loopCounter);
-		//FntPrint(fullText);
 
 		checkPads();
 
