@@ -52,7 +52,7 @@ POLY_F4 poly_boundary_lines[4];
 object_inf boundary_lines[4];
 
 // ----- PADDLE INFO  --------------------
-#define PADDLE_SPEED 5
+#define PADDLE_SPEED 3
 #define PADDLE_COUNT 2
 #define PADDLE_HEIGHT 25
 #define PADDLE_WIDTH 4
