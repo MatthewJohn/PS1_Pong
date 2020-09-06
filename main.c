@@ -117,8 +117,8 @@ object_inf ball;
 int ballV_x;
 int ballV_y;
 
-int BALLV_Y_MAX = 4;
-int BALL_REFLECTION_FACTOR = 3;
+#define BALLV_Y_MAX 4
+#define BALL_REFLECTION_FACTOR 3
 
 int ballFrameCount; // ball movement across multiple frames
 
