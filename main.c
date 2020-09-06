@@ -116,7 +116,7 @@ POLY_F4 poly_ball;
 object_inf ball;
 short ballV_x;
 short ballV_y;
-#define BALLV_Y_MAX 6
+short BALLV_Y_MAX = 6;
 short ballFrameCount; // ball movement across multiple frames
 
 // ----- gamepad INFO  --------------------
