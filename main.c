@@ -111,9 +111,9 @@ object_inf paddle_infos[PADDLE_COUNT];
 #define FPS 60
 POLY_F4 poly_ball;
 object_inf ball;
-float ballV_scale = 5; // Pixels per second
 short ballV_x;
 short ballV_y;
+#define BALLV_Y_MAX 8
 short ballFrameCount; // ball movement across multiple frames
 
 // ----- gamepad INFO  --------------------
@@ -138,9 +138,17 @@ void ballPaddleCollision(object_inf *paddle) {
 	// Get difference in y between ball and paddle
 	int diffY = ball.y - paddle->y;
 	if (diffY != 0)
-        ballV_y = 1 + (diffY / 3);
-	else
+		// If difference in
+        ballV_y = 1 * (diffY / 4);
+	else if (ballV_y > 0)
 		ballV_y = 1;
+	else
+		ballV_y = -1;
+
+	// If vertical velocity exceeds max,
+	// set to max
+	if (ballV_y > BALLV_Y_MAX)
+		ballV_y = BALLV_Y_MAX;
 
 	// Point ball in opposite direction
 	ballV_x = 0 - ballV_x;
