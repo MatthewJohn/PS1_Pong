@@ -94,10 +94,10 @@ POLY_F4 poly_boundary_lines[4];
 object_inf boundary_lines[4];
 
 // ----- PADDLE INFO  --------------------
-#define PADDLE_SPEED 3
+#define PADDLE_SPEED 5
 #define PADDLE_COUNT 2
-#define PADDLE_HEIGHT 40
-#define PADDLE_WIDTH 6
+#define PADDLE_HEIGHT 25
+#define PADDLE_WIDTH 4
 #define PADDLE_L_R 20
 #define PADDLE_L_G 120
 #define PADDLE_L_B 67
@@ -116,7 +116,10 @@ POLY_F4 poly_ball;
 object_inf ball;
 short ballV_x;
 short ballV_y;
-short BALLV_Y_MAX = 6;
+
+short BALLV_Y_MAX = 5;
+short BALL_REFLECTION_FACTOR = 3;
+
 short ballFrameCount; // ball movement across multiple frames
 
 // ----- gamepad INFO  --------------------
@@ -139,7 +142,7 @@ int polyIntersects(object_inf* a, object_inf *b) {
 
 void ballPaddleCollision(object_inf *paddle) {
 	// Get difference in y between ball and paddle
-	short Vy_factor = (ball.y - paddle->y) / 5;
+	short Vy_factor = (ball.y - paddle->y) / BALL_REFLECTION_FACTOR;
 
 	if (ballV_y == 0 && Vy_factor != 0)
 		ballV_y = Vy_factor;
