@@ -114,18 +114,22 @@ object_inf paddle_infos[PADDLE_COUNT];
 #define FPS 60
 POLY_F4 poly_ball;
 object_inf ball;
-short ballV_x;
-short ballV_y;
+int ballV_x;
+int ballV_y;
 
-short BALLV_Y_MAX = 5;
-short BALL_REFLECTION_FACTOR = 3;
+int BALLV_Y_MAX = 4;
+int BALL_REFLECTION_FACTOR = 3;
 
-short ballFrameCount; // ball movement across multiple frames
+int ballFrameCount; // ball movement across multiple frames
 
 // ----- gamepad INFO  --------------------
 u_long padButtons;
 
-float score;
+// -----Net line -------------------------
+POLY_F4 poly_net_line;
+object_inf net_line;
+
+int score;
 
 
 int polyIntersects(object_inf* a, object_inf *b) {
@@ -142,7 +146,7 @@ int polyIntersects(object_inf* a, object_inf *b) {
 
 void ballPaddleCollision(object_inf *paddle) {
 	// Get difference in y between ball and paddle
-	short Vy_factor = (ball.y - paddle->y) / BALL_REFLECTION_FACTOR;
+	int Vy_factor = (ball.y - paddle->y) / BALL_REFLECTION_FACTOR;
 
 	if (ballV_y == 0 && Vy_factor != 0)
 		ballV_y = Vy_factor;
@@ -157,6 +161,8 @@ void ballPaddleCollision(object_inf *paddle) {
 	// set to max
 	if (ballV_y > BALLV_Y_MAX)
 		ballV_y = BALLV_Y_MAX;
+	else if (ballV_y < -BALLV_Y_MAX)
+		ballV_y = -BALLV_Y_MAX;
 
 	// Point ball in opposite direction
 	ballV_x = 0 - ballV_x;
@@ -248,6 +254,14 @@ void initGame() {
 	boundary_lines[3].height = BOUNDARY_Y1 - BOUNDARY_Y0;
 	setupObject(&boundary_lines[3], 0, 0, 0);
 
+	//Netline
+	net_line.poly = &poly_net_line;
+	net_line.y = ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0;
+	net_line.x = ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0;
+	net_line.width = 2;
+	net_line.height = BOUNDARY_Y1 - BOUNDARY_Y0;
+	setupObject(&net_line, 0, 0, 0);
+
 	// Setup paddle structs
 	paddle_infos[0].poly = &poly_paddles[0];
 	paddle_infos[0].x = BOUNDARY_X0 + PADDLE_BOUNDARY_POS_MARGIN;
@@ -323,6 +337,7 @@ int main() {
 		drawObject(&boundary_lines[1]);
 		drawObject(&boundary_lines[2]);
 		drawObject(&boundary_lines[3]);
+		drawObject(&net_line);
 
 		drawObject(&paddle_infos[0]);
 		drawObject(&paddle_infos[1]);
