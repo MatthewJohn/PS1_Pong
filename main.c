@@ -225,10 +225,10 @@ int calculateBallHitPos() {
 
 	if (delta_y > court_height) {
 		delta_y -= court_height;
-		typeT = "a";
+		typeT = 'a';
 	} else {
 		delta_y = court_height - delta_y;
-		typeT = "b";
+		typeT = 'b';
 	}
 	sprintf(debugText, "%c:%d dx: %d, dy: %d, Pred: %d",
 			typeT,
@@ -278,13 +278,14 @@ void moveComputer() {
 				break;
 		}
 	} else {
-		currentOpponentState = NOTHING;
+		currentOpponentState = MOVING_TO_BALL;
 	}
 }
 
 void initGame() {
 	global_timer = 0;
-	currentOpponentState = NOTHING;
+	currentOpponentState = MOVING_TO_BALL;
+	opponentTargetPos = calculateTargetMovement();
 
 	// Setup boundary lines
 	boundary_lines[0].poly = &poly_boundary_lines[0];
