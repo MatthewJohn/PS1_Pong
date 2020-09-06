@@ -139,15 +139,8 @@ int polyIntersects(object_inf* a, object_inf *b) {
 
 void ballPaddleCollision(object_inf *paddle) {
 	// Get difference in y between ball and paddle
-	// Split paddle into four sections, for different ball YVelocity factors
-	// |  1  -  2
-	// |  0  -  1
-	// | -1  -  0
-	// | -2  - -1
 	short Vy_factor = (ball.y - paddle->y) / 5;
 
-	//if (Vy_factor != 0)
-		// If difference in
 	if (ballV_y == 0 && Vy_factor != 0)
 		ballV_y = Vy_factor;
     ballV_y = ballV_y * Vy_factor;
@@ -155,10 +148,7 @@ void ballPaddleCollision(object_inf *paddle) {
 	// Ensure ball in travelling in direction of the paddle side (e.g. top vs bottom)
     if ((Vy_factor > 0 && ballV_y < 0) || (Vy_factor < 0 && ballV_y > 0))
     	ballV_y = 0 - ballV_y;
-	//else if (ballV_y > 0)
-	//	ballV_y = 1;
-	//else
-	//	ballV_y = -1;
+
 
 	// If vertical velocity exceeds max,
 	// set to max
