@@ -121,7 +121,7 @@ object_inf net_line;
 
 // -- SCORE -----------------------------
 int scores[PADDLE_COUNT];
-POLY_FT4 poly_score_numbers[PADDLE_COUNT];
+SPRT poly_score_numbers[PADDLE_COUNT];
 #define SCORE_NUMBER_HEIGHT 20
 #define SCORE_NUMBER_WIDTH 20
 #define SCORE_NUMBER_MARGIN_LEFT 50
@@ -307,56 +307,58 @@ void moveComputer() {
 	}
 }
 
-void setupScoreNumber(POLY_FT4 *p) {
-	int twidth, theight;
-	int basepx, basepy;
+void setupScoreNumber(SPRT *p) {
+		setSprt(p);
+	   //p->attribute = 0 << 24; // Set bits 24-25 to 1 for 8-bit CLUT texture
+	   p->x0    = SCORE_NUMBER_MARGIN_LEFT;
+	   p->y0    = SCORE_NUMBER_MARGIN_TOP;
+	   p->w    = SCORE_NUMBER_WIDTH;
+	   p->h    = SCORE_NUMBER_HEIGHT;
+	   p->u0 = 320; //numbers_font.px;
+	   p->v0 = 0; //numbers_font.py;
+	   //p->tpage    = GetTPage(0, 0, numbers_font.px, numbers_font.py);
+	   p->clut    = GetClut(320, 64);
+	   //p->cx    = numbers_font.cx;
+	   //p->cy   = numbers_font.cy;
 
-    // Set texture size and coordinates
-//    switch (numbers_font.pmode & 3) {
-//        case 0: // 4-bit
-//            sprite->w = numbers_font.pw << 2;
-//            sprite->u = (numbers_font.px & 0x3f) * 4;
-//            break;
-//        case 1: // 8-bit
-//            sprite->w = numbers_font.pw << 1;
-//            sprite->u = (numbers_font.px & 0x3f) * 2;
-//            break;
-//        default: // 16-bit
-//            sprite->w = numbers_font.pw;
-//            sprite->u = numbers_font.px & 0x3f;
-//    };
+	   //p->r0    = 128;
+	   //p->g0   = 128;
+	   //p->b0   = 128;
+	   //p->scalex   = 4096;
+	   //p->scaley   = 4096;
 
-    //p->h = numbers_font.ph;
-    //p->v = numbers_font.py & 0xff;
+
+
+
 
     // Set texture page and color depth attribute
     //p->tpage       = GetTPage((numbers_font.pmode & 3), 0, numbers_font.px, numbers_font.py);
-	p->tpage       = GetTPage(0, 0, numbers_font.px, numbers_font.py);
-    //p->attribute   = (numbers_font.pmode & 3) << 24;
-
-    // CLUT coords
-    p->clut          = GetClut(numbers_font.cx, numbers_font.cy);
-    setPolyFT4(p);
-    setXY4(p,
-    	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
-    	SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
-    	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP,
-        SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP
-    );
-    //basepx = numbers_font.px;
-    //basepy = numbers_font.py;
-    twidth = 20;
-    theight = 20;
-    //sprintf(debugText, "%d", theight);
-    //basepx = 320;
-    basepx = 320;
-    basepy = 0;
-
-    setUV4(p,
-    		basepx         , basepy,
-    		basepx + twidth, basepy,
-    		basepx         , basepy + theight,
-    		basepx + twidth, basepy + theight);
+//	p->tpage       = GetTPage(0, 0, numbers_font.px, numbers_font.py);
+//    //p->attribute   = (numbers_font.pmode & 3) << 24;
+//
+//    // CLUT coords
+//    p->clut          = GetClut(numbers_font.cx, numbers_font.cy);
+//    setPolyFT4(p);
+//    setXY4(p,
+//    	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
+//    	SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
+//    	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP,
+//        SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP
+//    );
+//    //basepx = numbers_font.px;
+//    //basepy = numbers_font.py;
+//    twidth = 20;
+//    theight = 20;
+//    //sprintf(debugText, "%d", theight);
+//    //basepx = 320;
+//    basepx = 320;
+//    basepy = 0;
+//
+//    setUV4(p,
+//    		basepx         , basepy,
+//    		basepx + twidth, basepy,
+//    		basepx         , basepy + theight,
+//    		basepx + twidth, basepy + theight);
     //setRGB0(p, 64, 64, 64);
     //p->cx          = numbers_font.cx;
     //p->cy          = numbers_font.cy;
