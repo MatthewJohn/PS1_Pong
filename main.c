@@ -14,15 +14,21 @@
 
 #include "numbers_font_tim.h"
 
-#define OT_LENGTH 10
-#define PACKETMAX 18
-#define OT_ENTRIES  1<<OT_LENGTH
+#define OTSIZE	1		/* size of OT */
+#define MAXOBJ	4000		/* max ball number */
 
-#define PACKETMAX   2048
+typedef struct {
+	DRAWENV	draw;		/* drawing environment */
+	DISPENV	disp;		/* display environment */
+	u_long	ot[OTSIZE];	/* OT entry */
+	SPRT_16	sprt[MAXOBJ];	/* 16x16 sprite */
+} DB;
 
 
-GsOT        myOT[2];                        // OT handlers
-
+/* double buffer */
+DB	db[2];
+DB	*cdb;
+                       // OT handler
 
 #define __ramsize   0x00200000
 #define __stacksize 0x00004000
@@ -31,10 +37,6 @@ GsOT        myOT[2];                        // OT handlers
 
 int SCREEN_WIDTH, SCREEN_HEIGHT;
 
-GsOT orderingTable[2];
-GsOT_TAG    orderingTableTag[2][OT_ENTRIES];        // OT tables
-short currentBuffer;
-PACKET packetArea[2][PACKETMAX*24];
 
 char scoreText[100] = "Begin Game";
 char debugText[100] = "Debug Text";
@@ -314,10 +316,11 @@ void setupScoreNumber(SPRT *p) {
 	   p->y0    = SCORE_NUMBER_MARGIN_TOP;
 	   p->w    = SCORE_NUMBER_WIDTH;
 	   p->h    = SCORE_NUMBER_HEIGHT;
-	   p->u0 = 320; //numbers_font.px;
+	   p->u0 = 0; //320; //numbers_font.px;
 	   p->v0 = 0; //numbers_font.py;
 	   //p->tpage    = GetTPage(0, 0, numbers_font.px, numbers_font.py);
 	   p->clut    = GetClut(320, 64);
+	   sprintf(debugText, "%d", GetClut(320, 64));
 	   //p->cx    = numbers_font.cx;
 	   //p->cy   = numbers_font.cy;
 
@@ -475,53 +478,91 @@ void LoadTexture(GsIMAGE *image, u_long *addr) {
 }
 
 void initialize() {
-	if (*(char *)0xbfc7ff52=='E') { // SCEE string address
-    	// PAL
-    	SCREEN_WIDTH = 320;
-    	SCREEN_HEIGHT = 256;
-    	SetVideoMode(1);
-   	} else {
-     	// NTSC
-     	SCREEN_WIDTH = 320;
-     	SCREEN_HEIGHT = 240;
-     	SetVideoMode(0);
-    }
-	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0);
-	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);
 
-	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0);
-	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);
+	RECT rect;
 
-	orderingTable[0].length = OT_LENGTH;
-	orderingTable[1].length = OT_LENGTH;
-    orderingTable[0].org    = orderingTableTag[0];
-    orderingTable[1].org    = orderingTableTag[1];
+	ResetGraph(0);		/* initialize Renderer		*/
+	InitGeom();		/* initialize Geometry		*/
+
+	//SetGraphDebug(0);	/* set graphics debug mode */
+
+	/* clear image to reduce display distortion */
+	setRECT(&rect, 0, 0, 320, 256);
+	ClearImage(&rect, 0, 0, 0);
+	SetDispMask(1);
+
+	/* set debug mode (0:off,1:monitor,2:dump) */
+	//SetGraphDebug(0);
+
+	/* set up V-sync callback function */
+	//VSyncCallback(cbvsync);
+
+	/* set up rendering/display environment for double buffering
+        when rendering (0, 0) - (320,240), display (0,240) - (320,480) (db[0])
+        when rendering (0,240) - (320,480), display (0,  0) - (320,240) (db[1])  */
+	SetDefDrawEnv(&db[0].draw, 0,   0, 320, 240);
+	SetDefDrawEnv(&db[1].draw, 0, 240, 320, 240);
+	SetDefDispEnv(&db[0].disp, 0, 240, 320, 240);
+	SetDefDispEnv(&db[1].disp, 0,   0, 320, 240);
+
 
 	FntLoad(960, 256);
 	SetDumpFnt(FntOpen(0, 230, 300, 10, 1, 512));
 
+	db[0].draw.isbg = 1;
+	setRGB0(&db[0].draw, 255, 255, 255);
+	db[1].draw.isbg = 1;
+	setRGB0(&db[1].draw, 255, 255, 255);
+
 	LoadTexture(&numbers_font, (u_long*)numbers_font_tim);
+	//db[0].draw.tpage = LoadTPage((u_long*)numbers_font_tim, 0, 0, 640, 0, 16, 16);
+	//db[1].draw.tpage = LoadTPage((u_long*)numbers_font_tim, 0, 0, 640, 0, 16, 16);
+	db[0].draw.tpage = GetTPage(0, 0, numbers_font.px, numbers_font.py);
+	db[1].draw.tpage = GetTPage(0, 0, numbers_font.px, numbers_font.py);
+
 }
 
 void display() {
+	/* current OT */
+	u_long	*ot;
+
+	SPRT_16	*sp;		/* work */
 
 	if (DEBUG)
 		FntPrint(debugText);
 
-	currentBuffer = GsGetActiveBuff();
+	cdb  = (cdb==db)? db+1: db;
 
-	GsSetWorkBase((PACKET*)packetArea[currentBuffer]);
-	FntFlush(-1);
-	GsClearOt(0, 0, &orderingTable[currentBuffer]);
+	//DumpDrawEnv(&cdb->draw);
+	//DumpDispEnv(&cdb->disp);
+	//DumpTPage(cdb->draw.tpage);
+
+	ClearOTag(cdb->ot, OTSIZE);
+
+	ot = cdb->ot;
+	sp = cdb->sprt;
+	AddPrim(cdb->ot, &poly_score_numbers[0]);
 	DrawSync(0);
-	VSync(0);
-	GsSwapDispBuff();
-	GsSortClear(255, 255, 255, &orderingTable[currentBuffer]);
 
-	GsSortPoly(&poly_score_numbers[0], &orderingTable[currentBuffer], 0);
+	/* get CPU consuming time */
+	/* cnt = VSync(1); */
 
+	/* for 30fps operation */
+	/* cnt = VSync(2); */
 
-	GsDrawOt(&orderingTable[currentBuffer]);
+	/* wait for Vsync */
+	VSync(0);		/* wait for V-BLNK (1/60) */
+
+	/* swap double buffer */
+	/* display environment */
+	PutDispEnv(&cdb->disp);
+
+	/* drawing environment */
+	PutDrawEnv(&cdb->draw);
+
+	/* draw OT */
+	DrawOTag(cdb->ot);
+	FntFlush(-1);
 }
 
 
