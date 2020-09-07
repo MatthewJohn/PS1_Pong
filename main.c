@@ -123,6 +123,7 @@ object_inf net_line;
 
 // -- SCORE -----------------------------
 int scores[PADDLE_COUNT];
+//POLY_FT4 poly_score_numbers[PADDLE_COUNT];
 SPRT poly_score_numbers[PADDLE_COUNT];
 #define SCORE_NUMBER_HEIGHT 20
 #define SCORE_NUMBER_WIDTH 20
@@ -309,6 +310,7 @@ void moveComputer() {
 	}
 }
 
+//void setupScoreNumber(POLY_FT4 *p) {
 void setupScoreNumber(SPRT *p) {
 		setSprt(p);
 	   //p->attribute = 0 << 24; // Set bits 24-25 to 1 for 8-bit CLUT texture
@@ -316,7 +318,7 @@ void setupScoreNumber(SPRT *p) {
 	   p->y0    = SCORE_NUMBER_MARGIN_TOP;
 	   p->w    = SCORE_NUMBER_WIDTH;
 	   p->h    = SCORE_NUMBER_HEIGHT;
-	   p->u0 = 0; //320; //numbers_font.px;
+	   p->u0 = 320; //numbers_font.px;
 	   p->v0 = 0; //numbers_font.py;
 	   //p->tpage    = GetTPage(0, 0, numbers_font.px, numbers_font.py);
 	   p->clut    = GetClut(320, 64);
@@ -332,11 +334,11 @@ void setupScoreNumber(SPRT *p) {
 
 
 
-
-
-    // Set texture page and color depth attribute
-    //p->tpage       = GetTPage((numbers_font.pmode & 3), 0, numbers_font.px, numbers_font.py);
-//	p->tpage       = GetTPage(0, 0, numbers_font.px, numbers_font.py);
+//	int twidth, theight, basepx, basepy;
+//
+//    // Set texture page and color depth attribute
+//    p->tpage       = GetTPage((numbers_font.pmode & 3), 0, numbers_font.px, numbers_font.py);
+//	//p->tpage       = GetTPage(1, 0, 320, 0);
 //    //p->attribute   = (numbers_font.pmode & 3) << 24;
 //
 //    // CLUT coords
@@ -358,13 +360,15 @@ void setupScoreNumber(SPRT *p) {
 //    basepy = 0;
 //
 //    setUV4(p,
-//    		basepx         , basepy,
-//    		basepx + twidth, basepy,
 //    		basepx         , basepy + theight,
-//    		basepx + twidth, basepy + theight);
-    //setRGB0(p, 64, 64, 64);
-    //p->cx          = numbers_font.cx;
-    //p->cy          = numbers_font.cy;
+//    		basepx + twidth, basepy + theight,
+//    		basepx         , basepy,
+//    		basepx + twidth, basepy
+//
+//    		);
+//    setRGB0(p, 64, 64, 64);
+//    //p->cx          = numbers_font.cx;
+//    //p->cy          = numbers_font.cy;
 }
 
 void initGame() {
@@ -434,7 +438,7 @@ void initGame() {
 	ballV_y = 1;
 
 	currentOpponentState = MOVING_TO_BALL;
-	//opponentTargetPos = calculateTargetMovement();
+	opponentTargetPos = calculateTargetMovement();
 
 	// Initialise controllers
 	PadInit(0);
@@ -506,6 +510,7 @@ void initialize() {
 	SetDefDispEnv(&db[1].disp, 0,   0, 320, 240);
 
 
+
 	FntLoad(960, 256);
 	SetDumpFnt(FntOpen(0, 230, 300, 10, 1, 512));
 
@@ -517,16 +522,13 @@ void initialize() {
 	LoadTexture(&numbers_font, (u_long*)numbers_font_tim);
 	//db[0].draw.tpage = LoadTPage((u_long*)numbers_font_tim, 0, 0, 640, 0, 16, 16);
 	//db[1].draw.tpage = LoadTPage((u_long*)numbers_font_tim, 0, 0, 640, 0, 16, 16);
-	db[0].draw.tpage = GetTPage(0, 0, numbers_font.px, numbers_font.py);
-	db[1].draw.tpage = GetTPage(0, 0, numbers_font.px, numbers_font.py);
+	db[0].draw.tpage = GetTPage((numbers_font.pmode & 3), 0, numbers_font.px, numbers_font.py);
+	db[1].draw.tpage = GetTPage((numbers_font.pmode & 3), 0, numbers_font.px, numbers_font.py);
 
 }
 
 void display() {
-	/* current OT */
 	u_long	*ot;
-
-	SPRT_16	*sp;		/* work */
 
 	if (DEBUG)
 		FntPrint(debugText);
@@ -540,15 +542,8 @@ void display() {
 	ClearOTag(cdb->ot, OTSIZE);
 
 	ot = cdb->ot;
-	sp = cdb->sprt;
 	AddPrim(cdb->ot, &poly_score_numbers[0]);
 	DrawSync(0);
-
-	/* get CPU consuming time */
-	/* cnt = VSync(1); */
-
-	/* for 30fps operation */
-	/* cnt = VSync(2); */
 
 	/* wait for Vsync */
 	VSync(0);		/* wait for V-BLNK (1/60) */
