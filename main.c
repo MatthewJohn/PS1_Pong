@@ -470,6 +470,7 @@ void LoadTexture(GsIMAGE *image, u_long *addr) {
 }
 
 void initialize() {
+	DRAWENV *dr;
 	if (*(char *)0xbfc7ff52=='E') { // SCEE string address
     	// PAL
     	SCREEN_WIDTH = 320;
@@ -496,6 +497,12 @@ void initialize() {
 	SetDumpFnt(FntOpen(0, 230, 300, 10, 1, 512));
 
 	LoadTexture(&numbers_font, (u_long*)numbers_font_tim);
+	GetDrawEnv(dr);
+	dr->tpage = GetTPage(0, 0, numbers_font.px, numbers_font.py);
+	GsSwapDispBuff();
+	GetDrawEnv(dr);
+	dr->tpage = GetTPage(0, 0, numbers_font.px, numbers_font.py);
+
 }
 
 void display() {
