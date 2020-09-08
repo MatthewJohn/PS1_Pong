@@ -133,6 +133,11 @@ POLY_FT4 poly_score_numbers[PADDLE_COUNT];
 #define SCORE_NUMBER_MARGIN_LEFT 50
 #define SCORE_NUMBER_MARGIN_TOP 30
 
+#define TEX_SCORE_BASEX 0
+#define TEX_SCORE_BASEY 0
+#define TEX_SCORE_NUM_HEIGHT 20
+#define TEX_SCORE_NUM_WIDTH 20
+
 
 
 
@@ -322,24 +327,57 @@ void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut) {
 	p->tpage = *tpage;
 
     setXY4(p,
+        SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP,
+        SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP,
     	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
-    	SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
-    	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP,
-        SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP
+    	SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT
     );
-    twidth = 20;
-    theight = 40;
+
     sprintf(debugText, "%d", numbers_font.cy);
-
-
-    setUV4(p,
-    		basepx         , basepy + theight,
-    		basepx + twidth, basepy + theight,
-    		basepx         , basepy,
-    		basepx + twidth, basepy
-    );
-
 }
+
+typedef struct XYCord {
+	int x;
+	int y;
+} XYCord;
+
+XYCord convertScoreToTextureXY(int score) {
+	XYCord cords;
+	if (score == 0) {
+		cords.x = 4;
+		cords.y = 1;
+	} else {
+		cords.y = (score - 1) / 5;
+		cords.x = (score - 1) % 5;
+	}
+
+	cords.x *= TEX_SCORE_NUM_WIDTH;
+	cords.y *= TEX_SCORE_NUM_HEIGHT;
+
+	cords.x += TEX_SCORE_BASEX;
+	cords.y += TEX_SCORE_BASEY;
+
+	return cords;
+}
+
+void updateScorePoly(POLY_FT4 *p, int score)
+{
+    XYCord cords = convertScoreToTextureXY(score);
+    sprintf(debugText, "%d", numbers_font.ph);
+    setUV4(p,
+    		cords.x                      , cords.y,
+    		cords.x + TEX_SCORE_NUM_WIDTH, cords.y,
+    		cords.x                      , cords.y + TEX_SCORE_NUM_HEIGHT,
+    		cords.x + TEX_SCORE_NUM_WIDTH, cords.y + TEX_SCORE_NUM_HEIGHT
+    );
+    //setUVWH(p, 20, 20, TEX_SCORE_NUM_WIDTH, TEX_SCORE_NUM_HEIGHT);
+}
+
+void updateScores() {
+	updateScorePoly(&poly_score_numbers[0], scores[0]);
+	//updateScorePoly(&poly_score_numbers[1], scores[1]);
+}
+
 
 void initGame() {
 	global_timer = 0;
@@ -416,11 +454,14 @@ void initGame() {
     scores[0] = 0;
     scores[1] = 0;
 
+    // Import textures
     GsGetTimInfo((u_long *)(numbers_font_tim+4), &numbers_font);
-    g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw, numbers_font.ph);
+    g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw * 2, numbers_font.ph * 2);
     g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
 
     setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut);
+    //setupScoreNumber(&poly_score_numbers[1], &g_tpage, &g_clut);
+    updateScores();
 }
 
 void drawScore() {
