@@ -180,10 +180,14 @@ void resetBall() {
 	// Start buffer
 	int BALL_START_MARGIN_Y = 20;
 	int BALL_START_VEL_X_LOWER = 1;
-	int BALL_START_VEL_X_UPPER = 4;
+	int BALL_START_VEL_X_UPPER = 3;
 	ball.x = (BOUNDARY_X1 - BOUNDARY_X0) / 2;
 	ball.y = (rand() % ((BOUNDARY_Y1 - BOUNDARY_Y0) - (BALL_START_MARGIN_Y * 2))) + BOUNDARY_Y0 + BALL_START_MARGIN_Y;
-	ballV_x = 2;
+	ballV_x = rand() % 3;
+	if (ballV_x <= 1)
+		ballV_x = -2;
+	else
+		ballV_x = 2;
 	ballV_y = (rand() % (BALL_START_VEL_X_UPPER - BALL_START_VEL_X_LOWER)) + BALL_START_VEL_X_LOWER;
 
 	currentOpponentState = MOVING_TO_BALL;
