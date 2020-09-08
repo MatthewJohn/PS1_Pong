@@ -184,6 +184,7 @@ void endRound(int playerLose) {
 		scores[1] ++;
 	else
 		scores[0] ++;
+	updateScores();
 }
 
 void checkCollisions() {
@@ -318,7 +319,7 @@ void moveComputer() {
 	}
 }
 
-void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut) {
+void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut, int x) {
 
 	int twidth, theight, basepx, basepy;
 	setPolyFT4(p);
@@ -327,10 +328,10 @@ void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut) {
 	p->tpage = *tpage;
 
     setXY4(p,
-        SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP,
-        SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP,
-    	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
-    	SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT
+        x - (SCORE_NUMBER_WIDTH / 2), SCORE_NUMBER_MARGIN_TOP,
+        x + (SCORE_NUMBER_WIDTH / 2), SCORE_NUMBER_MARGIN_TOP,
+    	x - (SCORE_NUMBER_WIDTH / 2), SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
+    	x + (SCORE_NUMBER_WIDTH / 2), SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT
     );
 
     sprintf(debugText, "%d", numbers_font.cy);
@@ -370,12 +371,11 @@ void updateScorePoly(POLY_FT4 *p, int score)
     		cords.x                      , cords.y + TEX_SCORE_NUM_HEIGHT,
     		cords.x + TEX_SCORE_NUM_WIDTH, cords.y + TEX_SCORE_NUM_HEIGHT
     );
-    //setUVWH(p, 20, 20, TEX_SCORE_NUM_WIDTH, TEX_SCORE_NUM_HEIGHT);
 }
 
 void updateScores() {
 	updateScorePoly(&poly_score_numbers[0], scores[0]);
-	//updateScorePoly(&poly_score_numbers[1], scores[1]);
+	updateScorePoly(&poly_score_numbers[1], scores[1]);
 }
 
 
@@ -459,12 +459,14 @@ void initGame() {
     g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw * 2, numbers_font.ph * 2);
     g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
 
-    setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut);
-    //setupScoreNumber(&poly_score_numbers[1], &g_tpage, &g_clut);
+    setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT);
+    setupScoreNumber(&poly_score_numbers[1], &g_tpage, &g_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT);
     updateScores();
 }
 
 void drawScore() {
+	DrawPrim(&poly_score_numbers[0]);
+	DrawPrim(&poly_score_numbers[1]);
 	sprintf(scoreText, "Score: %f", scores[0]);
 	//FntPrint(scoreText);
 }
@@ -597,12 +599,13 @@ int main() {
 		drawObject(&boundary_lines[3]);
 		drawObject(&net_line);
 
+		drawScore();
+
 		drawObject(&paddle_infos[0]);
 		drawObject(&paddle_infos[1]);
 		drawObject(&ball);
 
-		//drawScore();
-		DrawPrim(&poly_score_numbers[0]);
+
 
 		display();
 	} while(1);
