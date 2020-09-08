@@ -314,43 +314,12 @@ void moveComputer() {
 }
 
 void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut) {
-//void setupScoreNumber(SPRT *p) {
-//		setSprt(p);
-//	   //p->attribute = 0 << 24; // Set bits 24-25 to 1 for 8-bit CLUT texture
-//	   p->x0    = SCORE_NUMBER_MARGIN_LEFT;
-//	   p->y0    = SCORE_NUMBER_MARGIN_TOP;
-//	   p->w    = SCORE_NUMBER_WIDTH;
-//	   p->h    = SCORE_NUMBER_HEIGHT;
-//	   p->u0 = 320; //numbers_font.px;
-//	   p->v0 = 0; //numbers_font.py;
-//	   //p->tpage    = GetTPage(0, 0, numbers_font.px, numbers_font.py);
-//	   p->clut    = (320, 40);
-//	   sprintf(debugText, "%d", (320, 40));
-	   //p->cx    = numbers_font.cx;
-	   //p->cy   = numbers_font.cy;
-
-	   //p->r0    = 128;
-	   //p->g0   = 128;
-	   //p->b0   = 128;
-	   //p->scalex   = 4096;
-	   //p->scaley   = 4096;
-
-
 
 	int twidth, theight, basepx, basepy;
 	setPolyFT4(p);
-    // Set texture page and color depth attribute
-    //p->tpage       = GetTPage((numbers_font.pmode & 3), 0, numbers_font.px, numbers_font.py);
-	//p->tpage = *tpage;
-	//p->tpage       = GetTPage(1, 0, 320, 0);
-    //p->attribute   = (numbers_font.pmode & 3) << 24;
 
-    // CLUT coords
-    //p->clut          = (numbers_font.cx, numbers_font.cy);
-    //p->clut = *clut;
-	GsGetTimInfo((u_long *)(numbers_font_tim+4), &numbers_font);
-	p->clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
-	p->tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw, numbers_font.ph);
+	p->clut = *clut;
+	p->tpage = *tpage;
 
     setXY4(p,
     	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
@@ -358,28 +327,18 @@ void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut) {
     	SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP,
         SCORE_NUMBER_MARGIN_LEFT + SCORE_NUMBER_WIDTH, SCORE_NUMBER_MARGIN_TOP
     );
-    //basepx = numbers_font.px;
-    //basepy = numbers_font.py;
     twidth = 20;
     theight = 40;
     sprintf(debugText, "%d", numbers_font.cy);
-    //basepx = 320;
-    //basepx = 0;
-    //basepy = 0;
+
 
     setUV4(p,
     		basepx         , basepy + theight,
     		basepx + twidth, basepy + theight,
     		basepx         , basepy,
     		basepx + twidth, basepy
+    );
 
-
-
-    		);
-    //setUVWH(p, 0, 0, 20, 20);
-    //setRGB0(p, 64, 64, 64);
-    //p->cx          = numbers_font.cx;
-    //p->cy          = numbers_font.cy;
 }
 
 void initGame() {
@@ -457,15 +416,10 @@ void initGame() {
     scores[0] = 0;
     scores[1] = 0;
 
+    GsGetTimInfo((u_long *)(numbers_font_tim+4), &numbers_font);
+    g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw, numbers_font.ph);
+    g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
 
-    //add image to primitive
-    //GsGetTimInfo((u_long *)(numbers_font_tim), &numbers_font);
-
-    //load texture page, and return its id to the textured primitve
-    //g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode, 0, numbers_font.px, numbers_font.py, numbers_font.pw, numbers_font.ph);
-
-    //load clut, and return its id to the texture primitive
-    //g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
     setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut);
 }
 
