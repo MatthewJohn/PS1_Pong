@@ -2,7 +2,7 @@
  * main.c
  *
  *  Created on: 3 Sep 2020
- *      Author: matt
+ *	  Author: matt
  */
 
 #include <stdlib.h>
@@ -28,7 +28,7 @@ typedef struct {
 /* double buffer */
 DB	db[2];
 DB	*cdb;
-                       // OT handler
+					   // OT handler
 
 #define __ramsize   0x00200000
 #define __stacksize 0x00004000
@@ -127,7 +127,6 @@ object_inf net_line;
 // -- SCORE -----------------------------
 int scores[PADDLE_COUNT];
 POLY_FT4 poly_score_numbers[3];
-//SPRT poly_score_numbers[PADDLE_COUNT];
 #define SCORE_NUMBER_HEIGHT 20
 #define SCORE_NUMBER_WIDTH 20
 #define SCORE_NUMBER_MARGIN_LEFT 50
@@ -167,11 +166,11 @@ void ballPaddleCollision(object_inf *paddle) {
 
 	if (ballV_y == 0 && Vy_factor != 0)
 		ballV_y = Vy_factor;
-    ballV_y = ballV_y * Vy_factor;
+	ballV_y = ballV_y * Vy_factor;
 
 	// Ensure ball in travelling in direction of the paddle side (e.g. top vs bottom)
-    if ((Vy_factor > 0 && ballV_y < 0) || (Vy_factor < 0 && ballV_y > 0))
-    	ballV_y = 0 - ballV_y;
+	if ((Vy_factor > 0 && ballV_y < 0) || (Vy_factor < 0 && ballV_y > 0))
+		ballV_y = 0 - ballV_y;
 
 	// If vertical velocity exceeds max,
 	// set to max
@@ -230,25 +229,25 @@ void moveBall() {
 }
 
 void setupObject(object_inf *p, int r, int g, int b) {
-    setPolyF4(p->poly);
-    setSemiTrans(p->poly, 1);
-    setRGB0(p->poly, r, g, b);
+	setPolyF4(p->poly);
+	setSemiTrans(p->poly, 1);
+	setRGB0(p->poly, r, g, b);
 }
 
 void drawObject(object_inf *p) {
-    setXY4(p->poly,
-        p->x - (p->width / 2), p->y + (p->height / 2),
-        p->x + (p->width / 2), p->y + (p->height / 2),
-        p->x - (p->width / 2), p->y - (p->height / 2),
-        p->x + (p->width / 2), p->y - (p->height / 2)
-    );
-    DrawPrim(p->poly);
+	setXY4(p->poly,
+		p->x - (p->width / 2), p->y + (p->height / 2),
+		p->x + (p->width / 2), p->y + (p->height / 2),
+		p->x - (p->width / 2), p->y - (p->height / 2),
+		p->x + (p->width / 2), p->y - (p->height / 2)
+	);
+	DrawPrim(p->poly);
 }
 
 void setRandomSeed() {
 	if (seed_set == 0) {
 		seed_set = 1;
-        srand((unsigned int)global_timer ^ GetRCnt(2));
+		srand((unsigned int)global_timer ^ GetRCnt(2));
 	}
 }
 
@@ -264,16 +263,16 @@ int calculateBallHitPos() {
 	int court_height = BOUNDARY_Y1 - BOUNDARY_Y0;
 	short delta_x = (BOUNDARY_X1 - PADDLE_BOUNDARY_POS_MARGIN) - ball.x;
 	short delta_y = (delta_x / ballV_x) * ballV_y;
-    int wasNegative = 0;
+	int wasNegative = 0;
 	char typeT;
 
 	// Convert delta_y to distance from top of boundary Y
 	delta_y += (ball.y - BOUNDARY_Y0);
 
-    if (delta_y < 0) {
-    	wasNegative = 1;
-    	delta_y = 0 - delta_y;
-    }
+	if (delta_y < 0) {
+		wasNegative = 1;
+		delta_y = 0 - delta_y;
+	}
 
 	delta_y += court_height;
 
@@ -325,11 +324,11 @@ void moveComputer() {
 				}
 				break;
 			case MOVING_TO_BALL:
-                if ((paddle_infos[1].y + (PADDLE_SPEED - 1)) < opponentTargetPos)
-			        paddle_infos[1].y += PADDLE_SPEED;
-		        else if ((paddle_infos[1].y - (PADDLE_SPEED - 1)) > opponentTargetPos)
-			        paddle_infos[1].y -= PADDLE_SPEED;
-                break;
+				if ((paddle_infos[1].y + (PADDLE_SPEED - 1)) < opponentTargetPos)
+					paddle_infos[1].y += PADDLE_SPEED;
+				else if ((paddle_infos[1].y - (PADDLE_SPEED - 1)) > opponentTargetPos)
+					paddle_infos[1].y -= PADDLE_SPEED;
+				break;
 			case REACHED_POS:
 				break;
 		}
@@ -345,14 +344,14 @@ void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut, int x, int y) 
 	p->clut = *clut;
 	p->tpage = *tpage;
 
-    setXY4(p,
-        x - (SCORE_NUMBER_WIDTH / 2), y,
-        x + (SCORE_NUMBER_WIDTH / 2), y,
-    	x - (SCORE_NUMBER_WIDTH / 2), y + SCORE_NUMBER_HEIGHT,
-    	x + (SCORE_NUMBER_WIDTH / 2), y + SCORE_NUMBER_HEIGHT
-    );
+	setXY4(p,
+		x - (SCORE_NUMBER_WIDTH / 2), y,
+		x + (SCORE_NUMBER_WIDTH / 2), y,
+		x - (SCORE_NUMBER_WIDTH / 2), y + SCORE_NUMBER_HEIGHT,
+		x + (SCORE_NUMBER_WIDTH / 2), y + SCORE_NUMBER_HEIGHT
+	);
 
-    //sprintf(debugText, "%d", numbers_font.cy);
+	//sprintf(debugText, "%d", numbers_font.cy);
 }
 
 typedef struct XYCord {
@@ -381,14 +380,14 @@ XYCord convertScoreToTextureXY(int score) {
 
 void updateScorePoly(POLY_FT4 *p, int score)
 {
-    XYCord cords = convertScoreToTextureXY(score);
-    sprintf(debugText, "%d", numbers_font.ph);
-    setUV4(p,
-    		cords.x                      , cords.y,
-    		cords.x + TEX_SCORE_NUM_WIDTH, cords.y,
-    		cords.x                      , cords.y + TEX_SCORE_NUM_HEIGHT,
-    		cords.x + TEX_SCORE_NUM_WIDTH, cords.y + TEX_SCORE_NUM_HEIGHT
-    );
+	XYCord cords = convertScoreToTextureXY(score);
+	sprintf(debugText, "%d", numbers_font.ph);
+	setUV4(p,
+			cords.x					  , cords.y,
+			cords.x + TEX_SCORE_NUM_WIDTH, cords.y,
+			cords.x					  , cords.y + TEX_SCORE_NUM_HEIGHT,
+			cords.x + TEX_SCORE_NUM_WIDTH, cords.y + TEX_SCORE_NUM_HEIGHT
+	);
 }
 
 void endGame() {
@@ -485,20 +484,20 @@ void initGame() {
 	// Initialise controllers
 	PadInit(0);
 
-    scores[0] = 0;
-    scores[1] = 0;
+	scores[0] = 0;
+	scores[1] = 0;
 
-    // Import textures
-    GsGetTimInfo((u_long *)(numbers_font_tim+4), &numbers_font);
-    g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw * 2, numbers_font.ph * 2);
-    g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
+	// Import textures
+	GsGetTimInfo((u_long *)(numbers_font_tim+4), &numbers_font);
+	g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw * 2, numbers_font.ph * 2);
+	g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
 
-    setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
-    setupScoreNumber(&poly_score_numbers[1], &g_tpage, &g_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
-    updateScoreNumbers();
+	setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
+	setupScoreNumber(&poly_score_numbers[1], &g_tpage, &g_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
+	updateScoreNumbers();
 
-    // Countdown number
-    setupScoreNumber(&poly_score_numbers[2], &g_tpage, &g_clut, ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0, ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0);
+	// Countdown number
+	setupScoreNumber(&poly_score_numbers[2], &g_tpage, &g_clut, ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0, ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0);
 }
 
 void drawScore() {
