@@ -126,7 +126,7 @@ object_inf net_line;
 
 // -- SCORE -----------------------------
 int scores[PADDLE_COUNT];
-POLY_FT4 poly_score_numbers[PADDLE_COUNT];
+POLY_FT4 poly_score_numbers[3];
 //SPRT poly_score_numbers[PADDLE_COUNT];
 #define SCORE_NUMBER_HEIGHT 20
 #define SCORE_NUMBER_WIDTH 20
@@ -139,7 +139,17 @@ POLY_FT4 poly_score_numbers[PADDLE_COUNT];
 #define TEX_SCORE_NUM_WIDTH 20
 
 
+enum GameState{
+	GS_COUNTDOWN,
+	GS_PLAYING,
+	GS_END
+};
+enum GameState currentGameState;
 
+#define COUNTDOWN_TIMER_START 3
+int countDownTimer;
+
+#define MAX_SCORE 3
 
 
 int polyIntersects(object_inf* a, object_inf *b) {
@@ -192,19 +202,11 @@ void resetBall() {
 
 	currentOpponentState = MOVING_TO_BALL;
 	opponentTargetPos = calculateTargetMovement();
+
+	currentGameState = GS_COUNTDOWN;
+	countDownTimer = COUNTDOWN_TIMER_START * FPS;
 }
 
-void endRound(int playerLose) {
-	// Temp check left/right boundaries
-	ballV_x = 0 - ballV_x;
-	if (playerLose)
-		scores[1] ++;
-	else
-		scores[0] ++;
-	updateScores();
-
-	resetBall();
-}
 
 void checkCollisions() {
 	if (polyIntersects(&ball, &paddle_infos[0]))
@@ -338,8 +340,7 @@ void moveComputer() {
 	}
 }
 
-void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut, int x) {
-
+void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut, int x, int y) {
 	int twidth, theight, basepx, basepy;
 	setPolyFT4(p);
 
@@ -347,10 +348,10 @@ void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut, int x) {
 	p->tpage = *tpage;
 
     setXY4(p,
-        x - (SCORE_NUMBER_WIDTH / 2), SCORE_NUMBER_MARGIN_TOP,
-        x + (SCORE_NUMBER_WIDTH / 2), SCORE_NUMBER_MARGIN_TOP,
-    	x - (SCORE_NUMBER_WIDTH / 2), SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT,
-    	x + (SCORE_NUMBER_WIDTH / 2), SCORE_NUMBER_MARGIN_TOP + SCORE_NUMBER_HEIGHT
+        x - (SCORE_NUMBER_WIDTH / 2), y,
+        x + (SCORE_NUMBER_WIDTH / 2), y,
+    	x - (SCORE_NUMBER_WIDTH / 2), y + SCORE_NUMBER_HEIGHT,
+    	x + (SCORE_NUMBER_WIDTH / 2), y + SCORE_NUMBER_HEIGHT
     );
 
     sprintf(debugText, "%d", numbers_font.cy);
@@ -392,10 +393,34 @@ void updateScorePoly(POLY_FT4 *p, int score)
     );
 }
 
-void updateScores() {
+void endGame() {
+	currentGameState = GS_END;
+}
+
+void updateScoreNumbers() {
 	updateScorePoly(&poly_score_numbers[0], scores[0]);
 	updateScorePoly(&poly_score_numbers[1], scores[1]);
 }
+
+void endRound(int playerLose) {
+	// Temp check left/right boundaries
+	ballV_x = 0 - ballV_x;
+	if (playerLose)
+		scores[1] ++;
+	else
+		scores[0] ++;
+
+	// Check if player won
+	if (scores[0] >= MAX_SCORE || scores[1] >= MAX_SCORE) {
+		endGame();
+		return;
+	}
+
+	updateScoreNumbers();
+
+	resetBall();
+}
+
 
 
 void initGame() {
@@ -472,15 +497,20 @@ void initGame() {
     g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw * 2, numbers_font.ph * 2);
     g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
 
-    setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT);
-    setupScoreNumber(&poly_score_numbers[1], &g_tpage, &g_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT);
-    updateScores();
+    setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
+    setupScoreNumber(&poly_score_numbers[1], &g_tpage, &g_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
+    updateScoreNumbers();
+
+    // Countdown number
+    setupScoreNumber(&poly_score_numbers[2], &g_tpage, &g_clut, ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0, ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0);
 }
 
 void drawScore() {
 	DrawPrim(&poly_score_numbers[0]);
 	DrawPrim(&poly_score_numbers[1]);
 	sprintf(scoreText, "Score: %f", scores[0]);
+	if (currentGameState == GS_COUNTDOWN)
+		DrawPrim(&poly_score_numbers[2]);
 	//FntPrint(scoreText);
 }
 
@@ -591,6 +621,37 @@ void display() {
 	FntFlush(-1);
 }
 
+void updateGameState() {
+	if (currentGameState == GS_PLAYING) {
+		checkPads();
+		moveComputer();
+
+		moveBall();
+
+		checkCollisions();
+	} else if (currentGameState == GS_COUNTDOWN) {
+		countDownTimer --;
+		updateScorePoly(&poly_score_numbers[2], (countDownTimer / FPS) + 1);
+		if (countDownTimer == 0)
+			currentGameState = GS_PLAYING;
+	} else {
+		sprintf(debugText, "Game OVer");
+	}
+}
+
+void drawObjects() {
+	drawObject(&boundary_lines[0]);
+	drawObject(&boundary_lines[1]);
+	drawObject(&boundary_lines[2]);
+	drawObject(&boundary_lines[3]);
+	drawObject(&net_line);
+
+	drawScore();
+
+	drawObject(&paddle_infos[0]);
+	drawObject(&paddle_infos[1]);
+	drawObject(&ball);
+}
 
 int main() {
 
@@ -599,26 +660,8 @@ int main() {
 	do {
 		global_timer ++;
 
-		checkPads();
-		moveComputer();
-
-		moveBall();
-
-		checkCollisions();
-
-		drawObject(&boundary_lines[0]);
-		drawObject(&boundary_lines[1]);
-		drawObject(&boundary_lines[2]);
-		drawObject(&boundary_lines[3]);
-		drawObject(&net_line);
-
-		drawScore();
-
-		drawObject(&paddle_infos[0]);
-		drawObject(&paddle_infos[1]);
-		drawObject(&ball);
-
-
+		updateGameState();
+		drawObjects();
 
 		display();
 	} while(1);
