@@ -149,7 +149,7 @@ enum GameState currentGameState;
 #define COUNTDOWN_TIMER_START 3
 int countDownTimer;
 
-#define MAX_SCORE 3
+#define MAX_SCORE 9
 
 
 int polyIntersects(object_inf* a, object_inf *b) {
@@ -191,7 +191,7 @@ void resetBall() {
 	int BALL_START_MARGIN_Y = 20;
 	int BALL_START_VEL_X_LOWER = 1;
 	int BALL_START_VEL_X_UPPER = 3;
-	ball.x = (BOUNDARY_X1 - BOUNDARY_X0) / 2;
+	ball.x = (BOUNDARY_X1 - BOUNDARY_X0) / 2 + BOUNDARY_X0;
 	ball.y = (rand() % ((BOUNDARY_Y1 - BOUNDARY_Y0) - (BALL_START_MARGIN_Y * 2))) + BOUNDARY_Y0 + BALL_START_MARGIN_Y;
 	ballV_x = rand() % 3;
 	if (ballV_x <= 1)
@@ -410,13 +410,13 @@ void endRound(int playerLose) {
 	else
 		scores[0] ++;
 
+	updateScoreNumbers();
+
 	// Check if player won
 	if (scores[0] >= MAX_SCORE || scores[1] >= MAX_SCORE) {
 		endGame();
 		return;
 	}
-
-	updateScoreNumbers();
 
 	resetBall();
 }
