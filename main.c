@@ -254,9 +254,8 @@ void setRandomSeed() {
 
 void checkPads() {
 	padButtons = PadRead(1);
-	if (padButtons) {
+	if (padButtons)
 		setRandomSeed();
-	}
 	if(padButtons & PADLup) paddle_infos[0].y -= PADDLE_SPEED;
 	if(padButtons & PADLdown) paddle_infos[0].y += PADDLE_SPEED;
 }
@@ -274,7 +273,6 @@ int calculateBallHitPos() {
     if (delta_y < 0) {
     	wasNegative = 1;
     	delta_y = 0 - delta_y;
-
     }
 
 	delta_y += court_height;
@@ -288,12 +286,12 @@ int calculateBallHitPos() {
 		delta_y = court_height - delta_y;
 		typeT = 'b';
 	}
-	sprintf(debugText, "%c:%d dx: %d, dy: %d, Pred: %d",
-			typeT,
-			wasNegative,
-			(BOUNDARY_X1 - PADDLE_BOUNDARY_POS_MARGIN) - ball.x,
-			(delta_x / ballV_x) * ballV_y,
-			delta_y);
+//	sprintf(debugText, "%c:%d dx: %d, dy: %d, Pred: %d",
+//			typeT,
+//			wasNegative,
+//			(BOUNDARY_X1 - PADDLE_BOUNDARY_POS_MARGIN) - ball.x,
+//			(delta_x / ballV_x) * ballV_y,
+//			delta_y);
 	return BOUNDARY_Y0 + delta_y;
 }
 
@@ -301,7 +299,7 @@ int calculateTargetMovement() {
 	int ballEndPos = calculateBallHitPos();
 	int decision = rand() % 100;
 	if (decision < OPPONENT_MISS_CHANCE) {
-		sprintf(debugText, "Goofin it up");
+		//sprintf(debugText, "Goofin it up");
 		if (ballEndPos <= (BOUNDARY_Y1 / 2 + BOUNDARY_Y0))
 			return ballEndPos + PADDLE_HEIGHT;
 		else
@@ -354,7 +352,7 @@ void setupScoreNumber(POLY_FT4 *p, u_short *tpage, u_short *clut, int x, int y) 
     	x + (SCORE_NUMBER_WIDTH / 2), y + SCORE_NUMBER_HEIGHT
     );
 
-    sprintf(debugText, "%d", numbers_font.cy);
+    //sprintf(debugText, "%d", numbers_font.cy);
 }
 
 typedef struct XYCord {
@@ -420,8 +418,6 @@ void endRound(int playerLose) {
 
 	resetBall();
 }
-
-
 
 void initGame() {
 	global_timer = 0;
@@ -511,34 +507,6 @@ void drawScore() {
 	sprintf(scoreText, "Score: %f", scores[0]);
 	if (currentGameState == GS_COUNTDOWN)
 		DrawPrim(&poly_score_numbers[2]);
-	//FntPrint(scoreText);
-}
-
-void LoadTexture(GsIMAGE *image, u_long *addr) {
-    RECT rect;
-
-    // Get TIM information
-    GsGetTimInfo((addr+1), image);
-
-    // Load the texture image
-    rect.x = image->px; rect.y = image->py;
-    rect.w = image->pw; rect.h = image->ph;
-    if (LoadImage2(&rect, image->pixel)) {
-    	sprintf(debugText, "failure load1");
-    	FntPrint(debugText);
-    }
-    DrawSync(0);
-
-    // Load the CLUT (if there is one)
-    if ((image->pmode>>3) & 0x01) {
-        rect.x = image->cx; rect.y = image->cy;
-        rect.w = image->cw; rect.h = image->ch;
-        if (LoadImage2(&rect, image->clut)) {
-           sprintf(debugText, "failure load2");
-           FntPrint(debugText);
-        }
-        DrawSync(0);
-    }
 }
 
 void initialize() {
@@ -555,21 +523,10 @@ void initialize() {
 	ClearImage(&rect, 0, 0, 0);
 	SetDispMask(1);
 
-	/* set debug mode (0:off,1:monitor,2:dump) */
-	//SetGraphDebug(0);
-
-	/* set up V-sync callback function */
-	//VSyncCallback(cbvsync);
-
-	/* set up rendering/display environment for double buffering
-        when rendering (0, 0) - (320,240), display (0,240) - (320,480) (db[0])
-        when rendering (0,240) - (320,480), display (0,  0) - (320,240) (db[1])  */
 	SetDefDrawEnv(&db[0].draw, 0,   0, 320, 240);
 	SetDefDrawEnv(&db[1].draw, 0, 240, 320, 240);
 	SetDefDispEnv(&db[0].disp, 0, 240, 320, 240);
 	SetDefDispEnv(&db[1].disp, 0,   0, 320, 240);
-
-
 
 	FntLoad(960, 256);
 	SetDumpFnt(FntOpen(0, 230, 300, 10, 1, 512));
@@ -578,14 +535,6 @@ void initialize() {
 	setRGB0(&db[0].draw, 255, 255, 255);
 	db[1].draw.isbg = 1;
 	setRGB0(&db[1].draw, 255, 255, 255);
-
-	//LoadTexture(&numbers_font, (u_long*)numbers_font_tim);
-	//db[1].draw.tpage = db[0].draw.tpage; //LoadTPage((u_long*)numbers_font_tim, 0, 0, 640, 0, 16, 16);
-
-	//db[0].draw.tpage = LoadTPage((u_long*)numbers_font_tim, 1, 0, 320, 0, 50, 40);
-	//db[0].draw.tpage = GetTPage((numbers_font.pmode & 3), 0, numbers_font.px, numbers_font.py);
-	//db[1].draw.tpage = GetTPage((numbers_font.pmode & 3), 0, numbers_font.px, numbers_font.py);
-
 }
 
 void display() {
@@ -596,27 +545,16 @@ void display() {
 
 	cdb  = (cdb==db)? db+1: db;
 
-	//DumpDrawEnv(&cdb->draw);
-	//DumpDispEnv(&cdb->disp);
-	//DumpTPage(cdb->draw.tpage);
-
 	ClearOTag(cdb->ot, OTSIZE);
 
 	ot = cdb->ot;
-	//AddPrim(cdb->ot, &poly_score_numbers[0]);
 	DrawSync(0);
 
-	/* wait for Vsync */
 	VSync(0);		/* wait for V-BLNK (1/60) */
 
-	/* swap double buffer */
-	/* display environment */
 	PutDispEnv(&cdb->disp);
-
-	/* drawing environment */
 	PutDrawEnv(&cdb->draw);
 
-	/* draw OT */
 	DrawOTag(cdb->ot);
 	FntFlush(-1);
 }
@@ -635,7 +573,7 @@ void updateGameState() {
 		if (countDownTimer == 0)
 			currentGameState = GS_PLAYING;
 	} else {
-		sprintf(debugText, "Game OVer");
+		sprintf(debugText, "Game Over");
 	}
 }
 
@@ -650,6 +588,7 @@ void drawObjects() {
 
 	drawObject(&paddle_infos[0]);
 	drawObject(&paddle_infos[1]);
+
 	drawObject(&ball);
 }
 
@@ -667,4 +606,3 @@ int main() {
 	} while(1);
 	return 0;
 }
-
