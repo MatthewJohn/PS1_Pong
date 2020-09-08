@@ -163,7 +163,6 @@ void ballPaddleCollision(object_inf *paddle) {
     if ((Vy_factor > 0 && ballV_y < 0) || (Vy_factor < 0 && ballV_y > 0))
     	ballV_y = 0 - ballV_y;
 
-
 	// If vertical velocity exceeds max,
 	// set to max
 	if (ballV_y > BALLV_Y_MAX)
@@ -177,6 +176,20 @@ void ballPaddleCollision(object_inf *paddle) {
 	//sprintf(debugText, "V: %d  F: %d", ballV_y, Vy_factor);
 }
 
+void resetBall() {
+	// Start buffer
+	int BALL_START_MARGIN_Y = 20;
+	int BALL_START_VEL_X_LOWER = 1;
+	int BALL_START_VEL_X_UPPER = 4;
+	ball.x = (BOUNDARY_X1 - BOUNDARY_X0) / 2;
+	ball.y = (rand() % ((BOUNDARY_Y1 - BOUNDARY_Y0) - (BALL_START_MARGIN_Y * 2))) + BOUNDARY_Y0 + BALL_START_MARGIN_Y;
+	ballV_x = 2;
+	ballV_y = (rand() % (BALL_START_VEL_X_UPPER - BALL_START_VEL_X_LOWER)) + BALL_START_VEL_X_LOWER;
+
+	currentOpponentState = MOVING_TO_BALL;
+	opponentTargetPos = calculateTargetMovement();
+}
+
 void endRound(int playerLose) {
 	// Temp check left/right boundaries
 	ballV_x = 0 - ballV_x;
@@ -185,6 +198,8 @@ void endRound(int playerLose) {
 	else
 		scores[0] ++;
 	updateScores();
+
+	resetBall();
 }
 
 void checkCollisions() {
@@ -436,17 +451,11 @@ void initGame() {
 
 	// Initialise ball
 	ball.poly = &poly_ball;
-	ball.x = (BOUNDARY_X1 - BOUNDARY_X0) / 2;
-	ball.y = (BOUNDARY_Y1 - BOUNDARY_Y0) / 2;
 	ball.width = 2;
 	ball.height = 2;
 	setupObject(&ball, 0, 0, 0);
 	ballFrameCount = 0;
-	ballV_x = 2;
-	ballV_y = 1;
-
-	currentOpponentState = MOVING_TO_BALL;
-	opponentTargetPos = calculateTargetMovement();
+	resetBall();
 
 	// Initialise controllers
 	PadInit(0);
