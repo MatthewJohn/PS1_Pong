@@ -13,6 +13,7 @@
 #include <libpad.h>
 
 #include "numbers_font_tim.h"
+#include "title_tim.h"
 
 #define OTSIZE	1		/* size of OT */
 #define MAXOBJ	4000		/* max ball number */
@@ -50,6 +51,7 @@ u_short g_tpage;
 
 
 GsIMAGE numbers_font;
+GsIMAGE title_image;
 
 
 // ----- Poly struct --------------------
@@ -488,7 +490,7 @@ void initGame() {
 	scores[1] = 0;
 
 	// Import textures
-	GsGetTimInfo((u_long *)(numbers_font_tim+4), &numbers_font);
+	GsGetTimInfo((u_long *)(numbers_font_tim + 4), &numbers_font);
 	g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw * 2, numbers_font.ph * 2);
 	g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
 
