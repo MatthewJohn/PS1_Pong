@@ -12,7 +12,8 @@
 #include <libetc.h>
 #include <libpad.h>
 
-#include "support\textures_tim.h"
+#include "numbers_font_tim.h"
+#include "title_tim.h"
 
 #define OTSIZE	1		/* size of OT */
 #define MAXOBJ	4000		/* max ball number */
@@ -49,8 +50,8 @@ u_short g_clut;
 u_short g_tpage;
 
 
-
-GsIMAGE texture_image;
+GsIMAGE numbers_font;
+GsIMAGE title_image;
 
 
 // ----- Poly struct --------------------
@@ -382,7 +383,7 @@ XYCord convertScoreToTextureXY(int score) {
 void updateScorePoly(POLY_FT4 *p, int score)
 {
 	XYCord cords = convertScoreToTextureXY(score);
-	sprintf(debugText, "%d", texture_image.ph);
+	sprintf(debugText, "%d", numbers_font.ph);
 	setUV4(p,
 			cords.x					  , cords.y,
 			cords.x + TEX_SCORE_NUM_WIDTH, cords.y,
@@ -489,9 +490,9 @@ void initGame() {
 	scores[1] = 0;
 
 	// Import textures
-	GsGetTimInfo((u_long *)(textures_tim + 4), &texture_image);
-	g_tpage = LoadTPage(texture_image.pixel, texture_image.pmode & 3, 0, texture_image.px, texture_image.py, texture_image.pw * 2, texture_image.ph * 2);
-	g_clut = LoadClut(texture_image.clut, texture_image.cx, texture_image.cy);
+	GsGetTimInfo((u_long *)(numbers_font_tim + 4), &numbers_font);
+	g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw * 2, numbers_font.ph * 2);
+	g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
 
 	setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
 	setupScoreNumber(&poly_score_numbers[1], &g_tpage, &g_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
