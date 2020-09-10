@@ -46,11 +46,12 @@ char debugText[100] = "Debug Text";
 long global_timer = 0;
 short seed_set = 0;
 
-u_short g_clut;
-u_short g_tpage;
+u_short numbers_clut;
+u_short numbers_tpage;
+u_short title_clut;
+u_short title_tpage;
 
-
-GsIMAGE numbers_font;
+GsIMAGE numbers_font_image;
 GsIMAGE title_image;
 
 
@@ -70,6 +71,8 @@ typedef struct object_inf {
 #define BOUNDARY_Y0 10
 #define BOUNDARY_X1 280
 #define BOUNDARY_Y1 200
+#define BOUNDARY_YC ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0
+#define BOUNDARY_XC ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0
 
 POLY_F4 poly_boundary_lines[4];
 object_inf boundary_lines[4];
@@ -140,10 +143,18 @@ POLY_FT4 poly_score_numbers[3];
 #define TEX_SCORE_NUM_WIDTH 20
 
 
+POLY_FT4 title_poly;
+#define TITLE_Y 60
+#define TEX_TITLE_BASEX 0
+#define TEX_TITLE_BASEY 41
+#define TEX_TITLE_WIDTH 70
+#define TEX_TITLE_HEIGHT 24
+
 enum GameState{
+	GS_TITLE_SCREEN,
 	GS_COUNTDOWN,
 	GS_PLAYING,
-	GS_END
+	GS_GAMEOVER
 };
 enum GameState currentGameState;
 
@@ -257,8 +268,15 @@ void checkPads() {
 	padButtons = PadRead(1);
 	if (padButtons)
 		setRandomSeed();
-	if(padButtons & PADLup) paddle_infos[0].y -= PADDLE_SPEED;
-	if(padButtons & PADLdown) paddle_infos[0].y += PADDLE_SPEED;
+
+	if (currentGameState == GS_TITLE_SCREEN) {
+		if (padButtons & PADstart)
+			currentGameState = GS_COUNTDOWN;
+
+	} else if (currentGameState == GS_PLAYING) {
+		if(padButtons & PADLup) paddle_infos[0].y -= PADDLE_SPEED;
+		if(padButtons & PADLdown) paddle_infos[0].y += PADDLE_SPEED;
+	}
 }
 
 int calculateBallHitPos() {
@@ -383,17 +401,17 @@ XYCord convertScoreToTextureXY(int score) {
 void updateScorePoly(POLY_FT4 *p, int score)
 {
 	XYCord cords = convertScoreToTextureXY(score);
-	sprintf(debugText, "%d", numbers_font.ph);
+	//sprintf(debugText, "%d", texture_image.ph);
 	setUV4(p,
-			cords.x					  , cords.y,
-			cords.x + TEX_SCORE_NUM_WIDTH, cords.y,
-			cords.x					  , cords.y + TEX_SCORE_NUM_HEIGHT,
-			cords.x + TEX_SCORE_NUM_WIDTH, cords.y + TEX_SCORE_NUM_HEIGHT
+		cords.x					     , cords.y,
+		cords.x + TEX_SCORE_NUM_WIDTH, cords.y,
+		cords.x					     , cords.y + TEX_SCORE_NUM_HEIGHT,
+		cords.x + TEX_SCORE_NUM_WIDTH, cords.y + TEX_SCORE_NUM_HEIGHT
 	);
 }
 
 void endGame() {
-	currentGameState = GS_END;
+	currentGameState = GS_GAMEOVER;
 }
 
 void updateScoreNumbers() {
@@ -418,6 +436,38 @@ void endRound(int playerLose) {
 	}
 
 	resetBall();
+}
+
+void setupLogo() {
+	setPolyFT4(&title_poly);
+
+	title_poly.clut = title_clut;
+	title_poly.tpage = title_tpage;
+
+	setXY4(&title_poly,
+		BOUNDARY_XC - (TEX_TITLE_WIDTH / 2), TITLE_Y,
+		BOUNDARY_XC + (TEX_TITLE_WIDTH / 2), TITLE_Y,
+		BOUNDARY_XC - (TEX_TITLE_WIDTH / 2), TITLE_Y + TEX_TITLE_HEIGHT,
+		BOUNDARY_XC + (TEX_TITLE_WIDTH / 2), TITLE_Y + TEX_TITLE_HEIGHT
+	);
+	sprintf(debugText, "%d", title_image.px);
+	setUV4(&title_poly,
+		TEX_TITLE_BASEX					 , TEX_TITLE_BASEY,
+		TEX_TITLE_BASEX + TEX_TITLE_WIDTH, TEX_TITLE_BASEY,
+		TEX_TITLE_BASEX					 , TEX_TITLE_BASEY + TEX_TITLE_HEIGHT,
+		TEX_TITLE_BASEX + TEX_TITLE_WIDTH, TEX_TITLE_BASEY + TEX_TITLE_HEIGHT
+	);
+}
+
+void importTextures() {
+	// Import textures
+	GsGetTimInfo((u_long *)(numbers_font_tim + 4), &numbers_font_image);
+	numbers_tpage = LoadTPage(numbers_font_image.pixel, numbers_font_image.pmode & 3, 0, numbers_font_image.px, numbers_font_image.py, numbers_font_image.pw * 2, numbers_font_image.ph);
+	numbers_clut = LoadClut(numbers_font_image.clut, numbers_font_image.cx, numbers_font_image.cy);
+
+	GsGetTimInfo((u_long *)(title_tim + 4), &title_image);
+	title_tpage = LoadTPage(title_image.pixel, title_image.pmode & 3, 0, title_image.px, title_image.py, title_image.pw * 2, title_image.ph);
+	title_clut = LoadClut(title_image.clut, title_image.cx, title_image.cy);
 }
 
 void initGame() {
@@ -489,17 +539,20 @@ void initGame() {
 	scores[0] = 0;
 	scores[1] = 0;
 
-	// Import textures
-	GsGetTimInfo((u_long *)(numbers_font_tim + 4), &numbers_font);
-	g_tpage = LoadTPage(numbers_font.pixel, numbers_font.pmode & 3, 0, numbers_font.px, numbers_font.py, numbers_font.pw * 2, numbers_font.ph * 2);
-	g_clut = LoadClut(numbers_font.clut, numbers_font.cx, numbers_font.cy);
 
-	setupScoreNumber(&poly_score_numbers[0], &g_tpage, &g_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
-	setupScoreNumber(&poly_score_numbers[1], &g_tpage, &g_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
+	importTextures();
+
+	setupScoreNumber(&poly_score_numbers[0], &numbers_tpage, &numbers_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
+	setupScoreNumber(&poly_score_numbers[1], &numbers_tpage, &numbers_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
 	updateScoreNumbers();
 
 	// Countdown number
-	setupScoreNumber(&poly_score_numbers[2], &g_tpage, &g_clut, ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0, ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0);
+	setupScoreNumber(&poly_score_numbers[2], &numbers_tpage, &numbers_clut, ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0, ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0);
+
+	// Title
+	setupLogo();
+
+	currentGameState = GS_TITLE_SCREEN;
 }
 
 void drawScore() {
@@ -561,8 +614,11 @@ void display() {
 }
 
 void updateGameState() {
-	if (currentGameState == GS_PLAYING) {
+	checkPads();
+
+	if (currentGameState == GS_TITLE_SCREEN) {
 		checkPads();
+	} else if (currentGameState == GS_PLAYING) {
 		moveComputer();
 
 		moveBall();
@@ -579,18 +635,26 @@ void updateGameState() {
 }
 
 void drawObjects() {
-	drawObject(&boundary_lines[0]);
-	drawObject(&boundary_lines[1]);
-	drawObject(&boundary_lines[2]);
-	drawObject(&boundary_lines[3]);
-	drawObject(&net_line);
+	if (currentGameState == GS_TITLE_SCREEN) {
+		DrawPrim(&title_poly);
+	} else if (
+			(currentGameState == GS_COUNTDOWN) ||
+			(currentGameState == GS_PLAYING) ||
+			(currentGameState == GS_GAMEOVER)
+	) {
+		drawObject(&boundary_lines[0]);
+		drawObject(&boundary_lines[1]);
+		drawObject(&boundary_lines[2]);
+		drawObject(&boundary_lines[3]);
+		drawObject(&net_line);
 
-	drawScore();
+		drawScore();
 
-	drawObject(&paddle_infos[0]);
-	drawObject(&paddle_infos[1]);
+		drawObject(&paddle_infos[0]);
+		drawObject(&paddle_infos[1]);
 
-	drawObject(&ball);
+		drawObject(&ball);
+	}
 }
 
 int main() {
