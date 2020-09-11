@@ -146,7 +146,7 @@ POLY_FT4 poly_score_numbers[3];
 POLY_FT4 title_poly;
 #define TITLE_Y 60
 #define TEX_TITLE_BASEX 0
-#define TEX_TITLE_BASEY 41
+#define TEX_TITLE_BASEY 71
 #define TEX_TITLE_WIDTH 70
 #define TEX_TITLE_HEIGHT 24
 
@@ -450,13 +450,14 @@ void setupLogo() {
 		BOUNDARY_XC - (TEX_TITLE_WIDTH / 2), TITLE_Y + TEX_TITLE_HEIGHT,
 		BOUNDARY_XC + (TEX_TITLE_WIDTH / 2), TITLE_Y + TEX_TITLE_HEIGHT
 	);
-	sprintf(debugText, "%d", title_image.px);
-	setUV4(&title_poly,
-		TEX_TITLE_BASEX					 , TEX_TITLE_BASEY,
-		TEX_TITLE_BASEX + TEX_TITLE_WIDTH, TEX_TITLE_BASEY,
-		TEX_TITLE_BASEX					 , TEX_TITLE_BASEY + TEX_TITLE_HEIGHT,
-		TEX_TITLE_BASEX + TEX_TITLE_WIDTH, TEX_TITLE_BASEY + TEX_TITLE_HEIGHT
-	);
+
+//	setUV4(&title_poly,
+//		TEX_TITLE_BASEX					 , TEX_TITLE_BASEY,
+//		TEX_TITLE_BASEX + TEX_TITLE_WIDTH, TEX_TITLE_BASEY,
+//		TEX_TITLE_BASEX					 , TEX_TITLE_BASEY + TEX_TITLE_HEIGHT,
+//		TEX_TITLE_BASEX + TEX_TITLE_WIDTH, TEX_TITLE_BASEY + TEX_TITLE_HEIGHT
+//	);
+	setUVWH(&title_poly, TEX_TITLE_BASEX, TEX_TITLE_BASEY, TEX_TITLE_WIDTH, TEX_TITLE_HEIGHT);
 }
 
 void importTextures() {
@@ -468,6 +469,11 @@ void importTextures() {
 	GsGetTimInfo((u_long *)(title_tim + 4), &title_image);
 	title_tpage = LoadTPage(title_image.pixel, title_image.pmode & 3, 0, title_image.px, title_image.py, title_image.pw * 2, title_image.ph);
 	title_clut = LoadClut(title_image.clut, title_image.cx, title_image.cy);
+
+	//sprintf(debugText, "%d, %d, %d, %d", title_image.px, title_image.py, title_image.pw * 2, title_image.ph);
+	sprintf(debugText, "%d, %d, %d, %d", TEX_TITLE_BASEX, TEX_TITLE_BASEY, TEX_TITLE_WIDTH, TEX_TITLE_HEIGHT);
+	//sprintf(debugText, "%d, %d", numbers_font_image.cx, numbers_font_image.cy);
+	//sprintf(debugText, "%d, %d", title_image.cx, title_image.cy);
 }
 
 void initGame() {
