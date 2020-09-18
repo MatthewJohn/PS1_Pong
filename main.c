@@ -146,9 +146,9 @@ POLY_FT4 poly_score_numbers[3];
 POLY_FT4 title_poly;
 #define TITLE_Y 60
 #define TEX_TITLE_BASEX 0
-#define TEX_TITLE_BASEY 71
-#define TEX_TITLE_WIDTH 70
-#define TEX_TITLE_HEIGHT 24
+#define TEX_TITLE_BASEY 42
+#define TEX_TITLE_WIDTH 24
+#define TEX_TITLE_HEIGHT 72
 
 enum GameState{
 	GS_TITLE_SCREEN,
@@ -462,18 +462,19 @@ void setupLogo() {
 
 void importTextures() {
 	// Import textures
-	GsGetTimInfo((u_long *)(numbers_font_tim + 4), &numbers_font_image);
-	numbers_tpage = LoadTPage(numbers_font_image.pixel, numbers_font_image.pmode & 3, 0, numbers_font_image.px, numbers_font_image.py, numbers_font_image.pw * 2, numbers_font_image.ph);
-	numbers_clut = LoadClut(numbers_font_image.clut, numbers_font_image.cx, numbers_font_image.cy);
+	//GsGetTimInfo((u_long *)(numbers_font_tim + 4), &numbers_font_image);
+	//numbers_tpage = LoadTPage(numbers_font_image.pixel, numbers_font_image.pmode & 3, 0, numbers_font_image.px, numbers_font_image.py, numbers_font_image.pw * 2, numbers_font_image.ph);
+	//numbers_clut = LoadClut(numbers_font_image.clut, numbers_font_image.cx, numbers_font_image.cy);
 
 	GsGetTimInfo((u_long *)(title_tim + 4), &title_image);
-	title_tpage = LoadTPage(title_image.pixel, title_image.pmode & 3, 0, title_image.px, title_image.py, title_image.pw * 2, title_image.ph);
+	title_tpage = LoadTPage(title_image.pixel, title_image.pmode & 3, 0, title_image.px, title_image.py, title_image.pw*2, title_image.ph);
 	title_clut = LoadClut(title_image.clut, title_image.cx, title_image.cy);
 
-	//sprintf(debugText, "%d, %d, %d, %d", title_image.px, title_image.py, title_image.pw * 2, title_image.ph);
-	sprintf(debugText, "%d, %d, %d, %d", TEX_TITLE_BASEX, TEX_TITLE_BASEY, TEX_TITLE_WIDTH, TEX_TITLE_HEIGHT);
+	sprintf(debugText, "%d, %d, %d, %d", title_image.px, title_image.py, title_image.pw, title_image.ph);
+	//sprintf(debugText, "%d, %d, %d, %d", TEX_TITLE_BASEX, TEX_TITLE_BASEY, TEX_TITLE_WIDTH, TEX_TITLE_HEIGHT);
 	//sprintf(debugText, "%d, %d", numbers_font_image.cx, numbers_font_image.cy);
 	//sprintf(debugText, "%d, %d", title_image.cx, title_image.cy);
+	//(debugText, "%d, %d", title_tpage, title_clut);
 }
 
 void initGame() {
@@ -548,12 +549,12 @@ void initGame() {
 
 	importTextures();
 
-	setupScoreNumber(&poly_score_numbers[0], &numbers_tpage, &numbers_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
-	setupScoreNumber(&poly_score_numbers[1], &numbers_tpage, &numbers_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
-	updateScoreNumbers();
+	//setupScoreNumber(&poly_score_numbers[0], &numbers_tpage, &numbers_clut, BOUNDARY_X0 + SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
+	//setupScoreNumber(&poly_score_numbers[1], &numbers_tpage, &numbers_clut, BOUNDARY_X1 - SCORE_NUMBER_MARGIN_LEFT, SCORE_NUMBER_MARGIN_TOP);
+	//updateScoreNumbers();
 
 	// Countdown number
-	setupScoreNumber(&poly_score_numbers[2], &numbers_tpage, &numbers_clut, ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0, ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0);
+	//setupScoreNumber(&poly_score_numbers[2], &numbers_tpage, &numbers_clut, ((BOUNDARY_X1 - BOUNDARY_X0) / 2) + BOUNDARY_X0, ((BOUNDARY_Y1 - BOUNDARY_Y0) / 2) + BOUNDARY_Y0);
 
 	// Title
 	setupLogo();
